@@ -5,6 +5,15 @@ import psutil
 import time
 import argparse
 
+
+def all_children(pr):
+    processes = []
+    for child in pr.get_children():
+        processes.append(child)
+        processes += all_children(child)
+    return processes
+
+
 def main():
 
     parser = argparse.ArgumentParser(description='Record CPU and memory usage for a process')
@@ -26,6 +35,11 @@ def main():
                         help='how long to wait between each sample (in '
                              'seconds). By default the process is sampled '
                              'as often as possible.')
+
+    parser.add_argument('--include-children',
+                        help='include sub-processes in statistics (results '
+                             'in a slower maximum sampling rate).',
+                        action='store_true')
 
     args = parser.parse_args()
 
@@ -77,6 +91,17 @@ def main():
             break
         current_mem_real = current_mem.rss / 1024. ** 2
         current_mem_virtual = current_mem.vms / 1024. ** 2
+
+        # Get information for children
+        if args.include_children:
+            for child in all_children(pr):
+                try:
+                    current_cpu += child.get_cpu_percent()
+                    current_mem = child.get_memory_info()
+                except:
+                    continue
+                current_mem_real += current_mem.rss / 1024. ** 2
+                current_mem_virtual += current_mem.vms / 1024. ** 2
 
         if args.log:
             f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(current_time - start_time,

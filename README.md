@@ -25,6 +25,9 @@ To install:
 Usage
 =====
 
+Basics
+------
+
 To record the CPU and memory activity of an existing process to a file:
 
     psrecord 1330 --log activity.txt
@@ -34,6 +37,9 @@ where ``1330`` is an example of a process ID which you can find with ``ps`` or
 command in quotes:
 
     psrecord "hyperion model.rtin model.rtout" --log activity.txt
+
+Plotting
+--------
 
 To make a plot of the activity:
 
@@ -48,6 +54,9 @@ at the same time:
 
     psrecord 1330 --log activity.txt --plot plot.png
 
+Duration and intervals
+----------------------
+
 By default, the monitoring will continue until the process is stopped. You can
 also specify a maximum duration in seconds:
 
@@ -57,6 +66,13 @@ Finally, the process is polled as often as possible by default, but it is
 possible to set the time between samples in seconds:
 
     psrecord 1330 --log activity.txt --interval 2
+
+Subprocesses
+------------
+
+To include sub-processes in the CPU and memory stats, use:
+
+    psrecord 1330 --log activity.txt --include-children
 
 Reporting issues
 ================
