@@ -1,3 +1,5 @@
+from __future__ import unicode_literals, division, print_function, absolute_import
+
 import sys
 import psutil
 import time
@@ -34,7 +36,11 @@ def main():
     start_time = time.time()
 
     if args.log:
-        f = open(args.filename, 'w')
+        f = open(args.log, 'w')
+        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format('Elapsed time'.center(12),
+                                                             'CPU (%)'.center(12),
+                                                             'Real (MB)'.center(12),
+                                                             'Virtual (MB)'.center(12)))
 
     log = {}
     log['times'] = []
@@ -62,7 +68,10 @@ def main():
         current_mem_virtual = current_mem.vms / 1024. ** 2
 
         if args.log:
-            f.write("{0:10.3f} {1:10.3f} {2:10.3f} {3:10.3f}\n".format(current_time, current_cpu, current_mem_real, current_mem_virtual))
+            f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(current_time - start_time,
+                                                                       current_cpu,
+                                                                       current_mem_real,
+                                                                       current_mem_virtual))
             f.flush()
 
         if args.interval is not None:
@@ -89,10 +98,12 @@ def main():
 
         ax.set_ylabel('CPU (%)', color='r')
         ax.set_xlabel('time (s)')
+        ax.set_ylim(0., max(log['cpu']) * 1.2)
 
         ax2 = ax.twinx()
 
         ax2.plot(log['times'],log['mem_real'], '-', lw=1, color='b')
+        ax2.set_ylim(0., max(log['mem_real']) * 1.2)
 
         ax2.set_ylabel('Real Memory (MB)', color='b')
 

@@ -9,6 +9,7 @@ therefore experimental.
 Requirements
 ============
 
+* Python 2.x or 3.x
 * [psutil](https://code.google.com/p/psutil/)
 * [matplotlib](http://www.matplotlib.org) (optional, used for plotting)
 
