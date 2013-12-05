@@ -33,12 +33,13 @@ def main():
     try:
         pid = int(args.process_id_or_command)
         print("Attaching to process {0}".format(pid))
+        sprocess = None
     except:
         import subprocess
         command = args.process_id_or_command
         print("Starting up command '{0}' and attaching to process".format(command))
-        subprocess = subprocess.Popen(command, shell=True)
-        pid = subprocess.pid
+        sprocess = subprocess.Popen(command, shell=True)
+        pid = sprocess.pid
 
     pr = psutil.Process(pid)
 
@@ -103,7 +104,6 @@ def main():
 
     if args.plot:
 
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
@@ -126,4 +126,5 @@ def main():
 
         fig.savefig(args.plot)
 
-    
+    if sprocess is not None:
+        sprocess.kill()
