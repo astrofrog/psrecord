@@ -9,7 +9,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Record CPU and memory usage for a process')
 
-    parser.add_argument('process_id', type=int, help='the process id')
+    parser.add_argument('process_id_or_command', type=str, help='the process id or command')
 
     parser.add_argument('--log', type=str,
                         help='output the statistics to a file')
@@ -30,7 +30,17 @@ def main():
     args = parser.parse_args()
 
     # Attach to process
-    pr = psutil.Process(args.process_id)
+    try:
+        pid = int(args.process_id_or_command)
+        print("Attaching to process {0}".format(pid))
+    except:
+        import subprocess
+        command = args.process_id_or_command
+        print("Starting up command '{0}' and attaching to process".format(command))
+        subprocess = subprocess.Popen(command, shell=True)
+        pid = subprocess.pid
+
+    pr = psutil.Process(pid)
 
     # Record start time
     start_time = time.time()
@@ -87,7 +97,12 @@ def main():
     if args.log:
         f.close()
 
+    if len(log['times']) == 0:
+        print("No samples were taken before job terminated")
+        sys.exit(0)
+
     if args.plot:
+
 
         import matplotlib.pyplot as plt
 
