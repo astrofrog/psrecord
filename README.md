@@ -39,6 +39,10 @@ To make a plot of the activity:
 
     psrecord 1330 --plot plot.png
 
+This will produce a plot such as:
+
+![screenshot](screenshot.png)
+
 You can combine these options to write the activity to a file and make a plot
 at the same time:
 
