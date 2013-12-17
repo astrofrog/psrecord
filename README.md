@@ -6,6 +6,9 @@ About
 memory activity of a process. The package is still under development and is
 therefore experimental.
 
+The code is released under a Simplified BSD License, which is given in the
+``LICENSE`` file.
+
 Requirements
 ============
 
