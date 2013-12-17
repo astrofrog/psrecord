@@ -30,8 +30,9 @@ from distutils.command.build_py import build_py
 
 
 setup(name='psrecord',
-      version='0.1.0',
+      version='0.2.0.dev',
       description='Python package to record activity from processes',
+      long_description='',
       author='Thomas Robitaille',
       author_email='thomas.robitaille@gmail.com',
       packages=['psrecord', 'psrecord.tests'],
