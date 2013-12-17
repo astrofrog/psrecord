@@ -23,3 +23,5 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .main import main
+
+__version__ = '0.1.0'
