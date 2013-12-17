@@ -67,6 +67,7 @@ def main():
 
     args = parser.parse_args()
 
+
     # Attach to process
     try:
         pid = int(args.process_id_or_command)
@@ -79,13 +80,22 @@ def main():
         sprocess = subprocess.Popen(command, shell=True)
         pid = sprocess.pid
 
+    monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
+            interval=args.interval, include_children=args.include_children)
+
+    if sprocess is not None:
+        sprocess.kill()
+
+
+def monitor(pid, logfile=None, plot=None, duration=None, interval=None, include_children=False):
+
     pr = psutil.Process(pid)
 
     # Record start time
     start_time = time.time()
 
-    if args.log:
-        f = open(args.log, 'w')
+    if logfile:
+        f = open(logfile, 'w')
         f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format('Elapsed time'.center(12),
                                                              'CPU (%)'.center(12),
                                                              'Real (MB)'.center(12),
@@ -104,7 +114,7 @@ def main():
         current_time = time.time()
 
         # Check if we have reached the maximum time
-        if args.duration is not None and current_time - start_time > args.duration:
+        if duration is not None and current_time - start_time > duration:
             break
 
         # Get current CPU and memory
@@ -117,7 +127,7 @@ def main():
         current_mem_virtual = current_mem.vms / 1024. ** 2
 
         # Get information for children
-        if args.include_children:
+        if include_children:
             for child in all_children(pr):
                 try:
                     current_cpu += child.get_cpu_percent()
@@ -127,31 +137,27 @@ def main():
                 current_mem_real += current_mem.rss / 1024. ** 2
                 current_mem_virtual += current_mem.vms / 1024. ** 2
 
-        if args.log:
+        if logfile:
             f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(current_time - start_time,
                                                                        current_cpu,
                                                                        current_mem_real,
                                                                        current_mem_virtual))
             f.flush()
 
-        if args.interval is not None:
-            time.sleep(args.interval)
+        if interval is not None:
+            time.sleep(interval)
 
         # If plotting, record the values
-        if args.plot:
+        if plot:
             log['times'].append(current_time - start_time)
             log['cpu'].append(current_cpu)
             log['mem_real'].append(current_mem_real)
             log['mem_virtual'].append(current_mem_virtual)
 
-    if args.log:
+    if logfile:
         f.close()
 
-    if len(log['times']) == 0:
-        print("No samples were taken before job terminated")
-        sys.exit(0)
-
-    if args.plot:
+    if plot:
 
         import matplotlib.pyplot as plt
 
@@ -173,7 +179,4 @@ def main():
 
         ax.grid()
 
-        fig.savefig(args.plot)
-
-    if sprocess is not None:
-        sprocess.kill()
+        fig.savefig(plot)
