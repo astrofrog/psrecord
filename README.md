@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/astrofrog/psrecord.png?branch=master)](https://travis-ci.org/astrofrog/psrecord) [![Coverage Status](https://coveralls.io/repos/astrofrog/psrecord/badge.png)](https://coveralls.io/r/astrofrog/psrecord)
+
 About
 =====
 
@@ -82,12 +84,3 @@ Reporting issues
 
 Please report any issues in the
 [issue tracker](https://github.com/astrofrog/psrecord/issues).
-
-Status
-======
-
-[![Build Status](https://travis-ci.org/astrofrog/psrecord.png?branch=master)](https://travis-ci.org/astrofrog/psrecord)
-
-[![Coverage Status](https://coveralls.io/repos/astrofrog/psrecord/badge.png)](https://coveralls.io/r/astrofrog/psrecord)
-
-
