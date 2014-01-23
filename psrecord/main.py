@@ -110,6 +110,10 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None, include_
     # Start main event loop
     while True:
 
+        # Check if process status indicates we should exit
+        if pr.status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
+            break
+
         # Find current time
         current_time = time.time()
 
