@@ -107,56 +107,58 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None, include_
     log['mem_real'] = []
     log['mem_virtual'] = []
 
-    # Start main event loop
-    while True:
+    try:
+        # Start main event loop
+        while True:
 
-        # Check if process status indicates we should exit
-        if pr.status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
-            break
+            # Check if process status indicates we should exit
+            if pr.status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
+                break
 
-        # Find current time
-        current_time = time.time()
+            # Find current time
+            current_time = time.time()
 
-        # Check if we have reached the maximum time
-        if duration is not None and current_time - start_time > duration:
-            break
+            # Check if we have reached the maximum time
+            if duration is not None and current_time - start_time > duration:
+                break
 
-        # Get current CPU and memory
-        try:
-            current_cpu = pr.get_cpu_percent()
-            current_mem = pr.get_memory_info()
-        except:
-            break
-        current_mem_real = current_mem.rss / 1024. ** 2
-        current_mem_virtual = current_mem.vms / 1024. ** 2
+            # Get current CPU and memory
+            try:
+                current_cpu = pr.get_cpu_percent()
+                current_mem = pr.get_memory_info()
+            except:
+                break
+            current_mem_real = current_mem.rss / 1024. ** 2
+            current_mem_virtual = current_mem.vms / 1024. ** 2
 
-        # Get information for children
-        if include_children:
-            for child in all_children(pr):
-                try:
-                    current_cpu += child.get_cpu_percent()
-                    current_mem = child.get_memory_info()
-                except:
-                    continue
-                current_mem_real += current_mem.rss / 1024. ** 2
-                current_mem_virtual += current_mem.vms / 1024. ** 2
+            # Get information for children
+            if include_children:
+                for child in all_children(pr):
+                    try:
+                        current_cpu += child.get_cpu_percent()
+                        current_mem = child.get_memory_info()
+                    except:
+                        continue
+                    current_mem_real += current_mem.rss / 1024. ** 2
+                    current_mem_virtual += current_mem.vms / 1024. ** 2
 
-        if logfile:
-            f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(current_time - start_time,
-                                                                       current_cpu,
-                                                                       current_mem_real,
-                                                                       current_mem_virtual))
-            f.flush()
+            if logfile:
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                    current_time - start_time, current_cpu, current_mem_real,
+                    current_mem_virtual))
+                f.flush()
 
-        if interval is not None:
-            time.sleep(interval)
+            if interval is not None:
+                time.sleep(interval)
 
-        # If plotting, record the values
-        if plot:
-            log['times'].append(current_time - start_time)
-            log['cpu'].append(current_cpu)
-            log['mem_real'].append(current_mem_real)
-            log['mem_virtual'].append(current_mem_virtual)
+            # If plotting, record the values
+            if plot:
+                log['times'].append(current_time - start_time)
+                log['cpu'].append(current_cpu)
+                log['mem_real'].append(current_mem_real)
+                log['mem_virtual'].append(current_mem_virtual)
+    except KeyboardInterrupt:
+        pass
 
     if logfile:
         f.close()
