@@ -46,7 +46,8 @@ setup(name='psrecord',
       install_requires=['psutil'],
       cmdclass={'build_py': build_py},
       entry_points={
-          'console_scripts': ['psrecord = psrecord:main']
+          'console_scripts': ['psrecord = psrecord:main',
+                              'psplot = psrecord.plot:main']
       },
       classifiers=[
           "Development Status :: 3 - Alpha",
