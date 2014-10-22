@@ -32,7 +32,11 @@ import argparse
 
 def all_children(pr):
     processes = []
-    for child in pr.get_children():
+    try:
+        children = pr.get_children()
+    except:
+        children = []
+    for child in children:
         processes.append(child)
         processes += all_children(child)
     return processes
