@@ -114,12 +114,19 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None, include_
     # Start main event loop
     while True:
 
-        # Check if process status indicates we should exit
-        if pr.status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
-            break
-
         # Find current time
         current_time = time.time()
+
+        try:
+            pr_status = pr.status()
+        except TypeError:  # psutil < 2.0
+            pr_status = pr.status
+
+        # Check if process status indicates we should exit
+        if pr_status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
+            print("Process finished ({0:.2f} seconds)"
+                  .format(current_time - start_time))
+            break
 
         # Check if we have reached the maximum time
         if duration is not None and current_time - start_time > duration:
