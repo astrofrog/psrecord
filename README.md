@@ -23,6 +23,10 @@ Installation
 
 To install:
 
+    pip install psrecord
+
+or if you want the latest developer version:
+
     git clone https://github.com/astrofrog/psrecord
     cd psrecord
     python setup.py install
