@@ -1,3 +1,4 @@
 include README.md
 include LICENSE
 include screenshot.png
+include CHANGES.md
