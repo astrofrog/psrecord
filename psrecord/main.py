@@ -59,7 +59,7 @@ def main():
                              'specified, the recording is continuous until '
                              'the job exits.')
 
-    parser.add_argument('--interval', type=int,
+    parser.add_argument('--interval', type=float,
                         help='how long to wait between each sample (in '
                              'seconds). By default the process is sampled '
                              'as often as possible.')
