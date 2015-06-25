@@ -17,7 +17,7 @@ before_install:
     - conda update --yes conda
 
     # Create environment
-    - conda create -n test python=$TRAVIS_PYTHON_VERSION
+    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
     - source activate test
 
     # Make sure that interactive matplotlib backends work
