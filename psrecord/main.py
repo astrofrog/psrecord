@@ -142,7 +142,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # Get current CPU and memory
             try:
-                current_cpu = pr.get_cpu_percent()
+                current_cpu = pr.cpu_percent()
                 current_mem = pr.get_memory_info()
             except:
                 break
@@ -153,7 +153,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             if include_children:
                 for child in all_children(pr):
                     try:
-                        current_cpu += child.get_cpu_percent()
+                        current_cpu += child.cpu_percent()
                         current_mem = child.get_memory_info()
                     except:
                         continue
