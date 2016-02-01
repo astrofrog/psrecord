@@ -20,7 +20,7 @@ before_install:
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 
 script:
-    - py.test --cov psrecord
+    - py.test --cov psrecord psrecord
 
 after_success:
     - coveralls
