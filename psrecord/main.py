@@ -31,6 +31,20 @@ import time
 import argparse
 
 
+def get_percent(process):
+    try:
+        return process.cpu_percent()
+    except AttributeError:
+        return process.get_cpu_percent()
+
+
+def get_memory(process):
+    try:
+        return process.memory_info()
+    except AttributeError:
+        return process.get_memory_info()
+
+
 def all_children(pr):
     processes = []
     try:
@@ -142,8 +156,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # Get current CPU and memory
             try:
-                current_cpu = pr.get_cpu_percent()
-                current_mem = pr.get_memory_info()
+                current_cpu = get_percent(pr)
+                current_mem = get_memory(pr)
             except:
                 break
             current_mem_real = current_mem.rss / 1024. ** 2

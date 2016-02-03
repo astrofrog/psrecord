@@ -1,34 +1,26 @@
-language: python
+language: c
 
-python:
-    - 2.6
-    - 2.7
-    - 3.3
-    - 3.4
+os:
+    - linux
+    - osx
+
+env:
+    matrix:
+        - PYTHON_VERSION=2.7
+        - PYTHON_VERSION=3.3
+        - PYTHON_VERSION=3.4
+        - PYTHON_VERSION=3.5
+    global:
+        - CONDA_DEPENDENCIES='numpy matplotlib psutil'
+        - PIP_DEPENDENCIES='coveralls pytest-cov'
+        - SETUP_XVFB=True
 
 before_install:
-
-    # Install conda
-    - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-    - chmod +x miniconda.sh
-    - ./miniconda.sh -b
-    - export PATH=/home/travis/miniconda/bin:$PATH
-    - conda update --yes conda
-
-    # Create environment
-    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
-    - source activate test
-
-    # Make sure that interactive matplotlib backends work
-    - export DISPLAY=:99.0
-    - sh -e /etc/init.d/xvfb start
-
-install:
-    - conda install --yes pip pytest numpy matplotlib psutil
-    - pip install coveralls pytest-cov
+    - git clone git://github.com/astropy/ci-helpers.git
+    - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 
 script:
-   - py.test --cov psrecord
+    - py.test --cov psrecord psrecord
 
 after_success:
-  - coveralls
+    - coveralls
