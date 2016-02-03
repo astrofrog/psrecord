@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/astrofrog/psrecord.png?branch=master)](https://travis-ci.org/astrofrog/psrecord) [![Coverage Status](https://coveralls.io/repos/astrofrog/psrecord/badge.png)](https://coveralls.io/r/astrofrog/psrecord)
+[![Build Status](https://travis-ci.org/astrofrog/psrecord.svg?branch=master)](https://travis-ci.org/astrofrog/psrecord) [![Coverage Status](https://coveralls.io/repos/astrofrog/psrecord/badge.svg)](https://coveralls.io/r/astrofrog/psrecord)
 
 About
 =====
