@@ -8,7 +8,7 @@ env:
     matrix:
         - PYTHON_VERSION=2.7 PSUTIL_VERSION=1
         - PYTHON_VERSION=2.7 PSUTIL_VERSION=2
-        - PYTHON_VERSION=2.7 PSUTIL_VERSION=3
+        - PYTHON_VERSION=3.3 PSUTIL_VERSION=3
         - PYTHON_VERSION=3.4 PSUTIL_VERSION=4
         - PYTHON_VERSION=3.5 PSUTIL_VERSION=5
     global:
@@ -22,6 +22,7 @@ before_install:
 
 script:
     - py.test --cov psrecord psrecord
+    - python setup.py check --restructuredtext
 
 after_success:
     - coveralls
