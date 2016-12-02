@@ -47,10 +47,14 @@ def get_memory(process):
 
 def all_children(pr):
     processes = []
+    children = []
     try:
+        children = pr.children()
+    except AttributeError:
         children = pr.get_children()
-    except:
-        children = []
+    except Exception:
+        pass
+
     for child in children:
         processes.append(child)
         processes += all_children(child)
@@ -143,6 +147,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 pr_status = pr.status()
             except TypeError:  # psutil < 2.0
                 pr_status = pr.status
+            except psutil.NoSuchProcess:
+                break
 
             # Check if process status indicates we should exit
             if pr_status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
@@ -167,18 +173,19 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             if include_children:
                 for child in all_children(pr):
                     try:
-                        current_cpu += child.get_cpu_percent()
-                        current_mem = child.get_memory_info()
+                        current_cpu += get_percent(child)
+                        current_mem = get_memory(child)
                     except:
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(current_time - start_time,
-                                                                           current_cpu,
-                                                                           current_mem_real,
-                                                                           current_mem_virtual))
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                    current_time - start_time,
+                    current_cpu,
+                    current_mem_real,
+                    current_mem_virtual))
                 f.flush()
 
             if interval is not None:
