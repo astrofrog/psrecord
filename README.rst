@@ -15,7 +15,7 @@ Requirements
 ============
 
 -  Python 2.7 or 3.3 and higher
--  `psutil <https://code.google.com/p/psutil/>`__
+-  `psutil <https://code.google.com/p/psutil/>`__ 1.0 or later
 -  `matplotlib <http://www.matplotlib.org>`__ (optional, used for
    plotting)
 
