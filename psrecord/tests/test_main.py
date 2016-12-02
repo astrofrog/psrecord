@@ -2,7 +2,32 @@ import os
 import sys
 import subprocess
 
-from ..main import main, monitor
+import psutil
+from ..main import main, monitor, all_children
+
+TEST_CODE = """
+import subprocess
+p = subprocess.Popen('sleep 5'.split())
+p.wait()
+"""
+
+
+def test_all_children(tmpdir):
+
+    filename = tmpdir.join('test.py').strpath
+
+    with open(filename, 'w') as f:
+        f.write(TEST_CODE)
+
+    p = subprocess.Popen('{0} {1}'.format(sys.executable, filename).split())
+
+    import time
+    time.sleep(1)
+
+    pr = psutil.Process(p.pid)
+    children = all_children(pr)
+    assert len(children) > 0
+    p.kill()
 
 
 class TestMonitor(object):
@@ -19,6 +44,10 @@ class TestMonitor(object):
     def test_simple_with_interval(self):
         monitor(self.p.pid, duration=3, interval=0.1)
 
+    def test_with_children(self, tmpdir):
+        # Test with current process since it has a subprocess (self.p)
+        monitor(os.getpid(), duration=3, include_children=True)
+
     def test_logfile(self, tmpdir):
         filename = tmpdir.join('test_logfile').strpath
         monitor(self.p.pid, logfile=filename, duration=3)
@@ -31,6 +60,9 @@ class TestMonitor(object):
         assert os.path.exists(filename)
 
     def test_main(self):
-        orig = sys.argv[:]
-        sys.argv = 'psrecord {0} --duration=3'.split()
+        sys.argv = ['psrecord', '--duration=3', "'sleep 10'"]
+        main()
+
+    def test_main_by_id(self):
+        sys.argv = ['psrecord', '--duration=3', str(os.getpid())]
         main()

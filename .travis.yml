@@ -6,10 +6,11 @@ os:
 
 env:
     matrix:
-        - PYTHON_VERSION=2.7
-        - PYTHON_VERSION=3.3
-        - PYTHON_VERSION=3.4
-        - PYTHON_VERSION=3.5
+        - PYTHON_VERSION=2.7 PSUTIL_VERSION=1
+        - PYTHON_VERSION=2.7 PSUTIL_VERSION=2
+        - PYTHON_VERSION=3.3 PSUTIL_VERSION=3
+        - PYTHON_VERSION=3.4 PSUTIL_VERSION=4
+        - PYTHON_VERSION=3.5 PSUTIL_VERSION=5
     global:
         - CONDA_DEPENDENCIES='numpy matplotlib psutil'
         - PIP_DEPENDENCIES='coveralls pytest-cov'
@@ -17,10 +18,11 @@ env:
 
 before_install:
     - git clone git://github.com/astropy/ci-helpers.git
-    - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+    - source ci-helpers/travis/setup_conda.sh
 
 script:
     - py.test --cov psrecord psrecord
+    - python setup.py check --restructuredtext
 
 after_success:
     - coveralls
