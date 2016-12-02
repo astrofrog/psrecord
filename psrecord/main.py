@@ -52,7 +52,7 @@ def all_children(pr):
         children = pr.children()
     except AttributeError:
         children = pr.get_children()
-    except Exception:
+    except Exception:  # pragma: no cover
         pass
 
     for child in children:
@@ -147,7 +147,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 pr_status = pr.status()
             except TypeError:  # psutil < 2.0
                 pr_status = pr.status
-            except psutil.NoSuchProcess:
+            except psutil.NoSuchProcess:  # pragma: no cover
                 break
 
             # Check if process status indicates we should exit
@@ -198,7 +198,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
 
-    except KeyboardInterrupt:
+    except KeyboardInterrupt:  # pragma: no cover
         pass
 
     if logfile:

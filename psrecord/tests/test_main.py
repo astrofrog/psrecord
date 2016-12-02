@@ -60,6 +60,9 @@ class TestMonitor(object):
         assert os.path.exists(filename)
 
     def test_main(self):
-        orig = sys.argv[:]
-        sys.argv = 'psrecord {0} --duration=3'.split()
+        sys.argv = ['psrecord', '--duration=3', "'sleep 10'"]
+        main()
+
+    def test_main_by_id(self):
+        sys.argv = ['psrecord', '--duration=3', str(os.getpid())]
         main()
