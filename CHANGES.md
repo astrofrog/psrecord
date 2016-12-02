@@ -1,3 +1,10 @@
+1.0 (unreleased)
+----------------
+
+- Fix compatibility with recent versions of psutil. [#18, #19]
+
+- psutil is now properly defined as a dependency in install_requires. [#16]
+
 0.2 (2014-10-22)
 ----------------
 
