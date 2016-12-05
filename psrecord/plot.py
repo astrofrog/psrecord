@@ -23,10 +23,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import (unicode_literals, division, print_function,
-                        absolute_import)
+from __future__ import division, print_function, absolute_import
 
 import argparse
+import io
 
 try:
     import matplotlib.pyplot as plt
@@ -78,7 +78,7 @@ class Plot(object):
 
 
 def read_file(filename):
-    with open(filename, 'r') as f:
+    with io.open(filename, 'r', encoding='utf8') as f:
         lines = [[float(i) for i in line.split()]
                  for line in f if not line.startswith('#')]
 
