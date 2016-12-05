@@ -28,11 +28,13 @@ from setuptools import setup, Command
 
 from distutils.command.build_py import build_py
 
+with open('README.rst') as infile:
+    long_description = infile.read()
 
 setup(name='psrecord',
       version='1.0.0.dev',
       description='Python package to record activity from processes',
-      long_description='',
+      long_description=long_description,
       url='https://github.com/astrofrog/psrecord',
       license='Simplified BSD License',
       author='Thomas Robitaille',
