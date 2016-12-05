@@ -31,8 +31,10 @@ from distutils.command.build_py import build_py
 with open('README.rst') as infile:
     long_description = infile.read()
 
+from psrecord import __version__
+
 setup(name='psrecord',
-      version='1.0.0.dev',
+      version=__version__,
       description='Python package to record activity from processes',
       long_description=long_description,
       url='https://github.com/astrofrog/psrecord',
