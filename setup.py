@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from setuptools import setup, Command
+from setuptools import setup
 
 from distutils.command.build_py import build_py
 
@@ -43,12 +43,14 @@ setup(name='psrecord',
       author_email='thomas.robitaille@gmail.com',
       packages=['psrecord', 'psrecord.tests'],
       provides=['psrecord'],
-      scripts=['scripts/psrecord'],
       install_requires=['psutil'],
       cmdclass={'build_py': build_py},
+      entry_points={
+          'console_scripts': ['psrecord = psrecord:main']
+      },
       classifiers=[
-                   "Development Status :: 3 - Alpha",
-                   "Programming Language :: Python",
-                   "License :: OSI Approved :: BSD License",
-                  ],
-     )
+          "Development Status :: 3 - Alpha",
+          "Programming Language :: Python",
+          "License :: OSI Approved :: BSD License",
+      ],
+      )
