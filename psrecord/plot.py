@@ -49,11 +49,11 @@ class Plot(object):
 
         if 'cpu' in data:
             self.ax.plot(data['times'], data['cpu'], '-', lw=1,
-                         label=label + ' cpu', marker='o', ms=3)
+                         label=label + ' cpu')
             self.max_cpu = max(self.max_cpu, max(data['cpu']) * 1.1)
         if 'mem_real' in data:
-            self.ax2.plot(data['times'], data['mem_real'], '-', lw=1,
-                          label=label + ' mem', marker='o', ms=3)
+            self.ax2.plot(data['times'], data['mem_real'], '--', lw=1,
+                          label=label + ' mem')
             self.max_mem = max(self.max_mem, max(data['mem_real']) * 1.1)
 
     def show(self):
