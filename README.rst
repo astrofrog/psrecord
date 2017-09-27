@@ -4,7 +4,7 @@ About
 =====
 
 ``psrecord`` is a small utility that uses the
-`psutil <https://code.google.com/p/psutil/>`__ library to record the CPU
+`psutil <https://github.com/giampaolo/psutil/>`__ library to record the CPU
 and memory activity of a process. The package is still under development
 and is therefore experimental.
 
