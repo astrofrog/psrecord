@@ -75,6 +75,10 @@ def main():
     parser.add_argument('--plot', type=str,
                         help='output the statistics to a plot')
 
+    parser.add_argument('--plot-virtual-memory',
+                        help='plot virtual memory also along with real memory',
+                        action='store_true')
+
     parser.add_argument('--duration', type=float,
                         help='how long to record for (in seconds). If not '
                              'specified, the recording is continuous until '
@@ -105,15 +109,17 @@ def main():
         sprocess = subprocess.Popen(command, shell=True)
         pid = sprocess.pid
 
-    monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children)
+    monitor(pid, logfile=args.log, plot=args.plot,
+            plot_virtual_memory=args.plot_virtual_memory,
+            duration=args.duration, interval=args.interval,
+            include_children=args.include_children)
 
     if sprocess is not None:
         sprocess.kill()
 
 
-def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False):
+def monitor(pid, logfile=None, plot=None, plot_virtual_memory=None,
+            duration=None, interval=None, include_children=False):
 
     pr = psutil.Process(pid)
 
@@ -209,20 +215,23 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
+
         ax = fig.add_subplot(1, 1, 1)
-
-        ax.plot(log['times'], log['cpu'], '-', lw=1, color='r')
-
+        ax.plot(log['times'], log['cpu'], '-', lw=1, color='r', label='cpu%')
         ax.set_ylabel('CPU (%)', color='r')
         ax.set_xlabel('time (s)')
         ax.set_ylim(0., max(log['cpu']) * 1.2)
+        ax.legend(loc=2)
 
         ax2 = ax.twinx()
-
-        ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
-        ax2.set_ylim(0., max(log['mem_real']) * 1.2)
-
-        ax2.set_ylabel('Real Memory (MB)', color='b')
+        ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b', label='real')
+        if plot_virtual_memory:
+            ax2.plot(log['times'], log['mem_virtual'], '-', lw=1, color='g', label='virt')
+            ax2.set_ylim(0., max(log['mem_virtual']) * 1.0)
+        else:
+            ax2.set_ylim(0., max(log['mem_real']) * 1.2)
+        ax2.set_ylabel('Memory (MB)', color='b')
+        ax2.legend(loc=1)
 
         ax.grid()
 
