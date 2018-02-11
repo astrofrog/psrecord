@@ -75,6 +75,10 @@ def main():
     parser.add_argument('--plot', type=str,
                         help='output the statistics to a plot')
 
+    parser.add_argument('--plot-virtual-memory',
+                        help='plot virtual memory instead of real memory',
+                        action='store_true')
+
     parser.add_argument('--duration', type=float,
                         help='how long to record for (in seconds). If not '
                              'specified, the recording is continuous until '
@@ -105,15 +109,17 @@ def main():
         sprocess = subprocess.Popen(command, shell=True)
         pid = sprocess.pid
 
-    monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children)
+    monitor(pid, logfile=args.log, plot=args.plot,
+            plot_virtual_memory=args.plot_virtual_memory,
+            duration=args.duration, interval=args.interval,
+            include_children=args.include_children)
 
     if sprocess is not None:
         sprocess.kill()
 
 
-def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False):
+def monitor(pid, logfile=None, plot=None, plot_virtual_memory=None,
+            duration=None, interval=None, include_children=False):
 
     pr = psutil.Process(pid)
 
@@ -219,10 +225,13 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
         ax2 = ax.twinx()
 
-        ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
-        ax2.set_ylim(0., max(log['mem_real']) * 1.2)
+        mem_key = 'mem_virtual' if plot_virtual_memory else 'mem_real'
+        mem_label = 'Virtual Memory (MB)' if plot_virtual_memory else 'Real Memory (MB)'
 
-        ax2.set_ylabel('Real Memory (MB)', color='b')
+        ax2.plot(log['times'], log[mem_key], '-', lw=1, color='b')
+        ax2.set_ylim(0., max(log[mem_key]) * 1.2)
+
+        ax2.set_ylabel(mem_label, color='b')
 
         ax.grid()
 
