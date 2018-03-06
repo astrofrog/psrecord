@@ -29,6 +29,7 @@ from __future__ import (unicode_literals, division, print_function,
 import psutil
 import time
 import argparse
+from sys import platform as _platform
 
 
 def get_percent(process):
@@ -38,9 +39,10 @@ def get_percent(process):
         return process.get_cpu_percent()
 
 
-def get_memory(process):
+def get_memory(process, use_uss):
     try:
-        return process.memory_full_info()
+        memory_info = process.memory_full_info() if (use_uss) else process.memory_info()
+        return memory_info
     except AttributeError:
         return process.get_memory_info()
 
@@ -59,6 +61,23 @@ def all_children(pr):
         processes.append(child)
         processes += all_children(child)
     return processes
+
+
+def is_uss_possible():
+    #Test is platform linux
+    if (_platform == "linux" or _platform == "linux2"):
+        #Linux option works only with psutil version +2.6x on Linux
+        if (psutil.version_info >= (2, 6)):
+            return True
+        else: 
+            print (("Warning: flag --linux ignored. Version of psutil module have"
+                "to be greater than 2.6 to use --linux flag. Your version is: "
+                "{0:d}.{1:d}").format(psutil.version_info[0], psutil.version_info[1]))
+            return False
+    else:
+        print (("Warning: flag --linux ignored. Your OS detected "
+                "as: {0:s}").format(_platform))
+        return False
 
 
 def main():
@@ -112,13 +131,18 @@ def main():
         pid = sprocess.pid
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children, linux=args.linux)
+            interval=args.interval, include_children=args.include_children, 
+            linux=args.linux)
 
     if sprocess is not None:
         sprocess.kill()
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             include_children=False, linux=False):
+   
+    #If flag linux true test is it possible to use this flag
+    if (linux):
+        linux = is_uss_possible()
 
     pr = psutil.Process(pid)
 
@@ -137,8 +161,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             f.write(" {0:12s}".format(
                 'USS (MB)'.center(12))
             )
-        else:
-            f.write("\n")
+        f.write("\n")
 
     log = {}
     log['times'] = []
@@ -176,12 +199,13 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             # Get current CPU and memory
             try:
                 current_cpu = get_percent(pr)
-                current_mem = get_memory(pr)
+                current_mem = get_memory(pr, linux)
             except:
                 break
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
-            current_mem_uss = current_mem.uss / 1024. ** 2
+            if (linux):
+                current_mem_uss = current_mem.uss / 1024. ** 2
 
             # Get information for children
             if include_children:
@@ -193,7 +217,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
-                    current_mem_uss = current_mem.uss / 1024. ** 2
+                    if (linux):
+                        current_mem_uss = current_mem.uss / 1024. ** 2
 
             if logfile:
                 f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
