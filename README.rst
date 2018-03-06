@@ -92,6 +92,18 @@ To include sub-processes in the CPU and memory stats, use:
 
     psrecord 1330 --log activity.txt --include-children
 
+Memory on linux 
+------------
+
+To record memory activity on linux system as "real memory" 
+better suited unique set size (USS). Uss is ths portion of
+main memory (RAM) occupied by a process which is guaranteed to
+be private to that process:
+
+::
+
+    psrecord 1330 --log activity.txt --linux
+
 Reporting issues
 ================
 
