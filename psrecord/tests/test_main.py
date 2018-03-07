@@ -11,6 +11,11 @@ p = subprocess.Popen('sleep 5'.split())
 p.wait()
 """
 
+def test_is_uss_possible():
+    if ((sys.platform.startswith("linux")) and psutil.version_info >= (2, 6)):
+        assert is_uss_possible == True
+    else:
+        assert is_uss_possible == False
 
 def test_all_children(tmpdir):
 
@@ -59,6 +64,13 @@ class TestMonitor(object):
         monitor(self.p.pid, plot=filename, duration=3)
         assert os.path.exists(filename)
 
+    def test_linux(self, tmpdir):
+        filename = tmpdir.join('test_logfile').strpath
+        monitor(self.p.pid, logfile=filename, duration=3)
+        assert os.path.exists(filename)
+        is_uss_active = (open(filename, 'r').readlines()[0].find("USS") > 0)
+        assert is_uss_possible() == is_uss_active
+    
     def test_main(self):
         sys.argv = ['psrecord', '--duration=3', "'sleep 10'"]
         main()
