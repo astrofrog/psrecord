@@ -96,7 +96,7 @@ Memory on linux
 ------------
 
 To record memory activity on linux system as "real memory" 
-better suited unique set size (USS). Uss is ths portion of
+better suited unique set size (USS). Uss is the portion of
 main memory (RAM) occupied by a process which is guaranteed to
 be private to that process:
 
