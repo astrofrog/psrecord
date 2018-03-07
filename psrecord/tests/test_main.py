@@ -64,12 +64,20 @@ class TestMonitor(object):
         monitor(self.p.pid, plot=filename, duration=3)
         assert os.path.exists(filename)
 
-    def test_linux(self, tmpdir):
+    def test_logfile_linux(self, tmpdir):
         filename = tmpdir.join('test_logfile').strpath
         monitor(self.p.pid, logfile=filename, duration=3, linux=True)
         assert os.path.exists(filename)
         is_uss_active = (open(filename, 'r').readlines()[0].find("USS") > 0)
         assert is_uss_possible() == is_uss_active
+    
+    def test_plot_linux(self, tmpdir):
+        filename = tmpdir.join('test_plot.png').strpath
+        monitor(self.p.pid, plot=filename, duration=3, linux=True)
+        assert os.path.exists(filename)
+    
+    def test_linux_with_children(self, tmpdir):
+        monitor(os.getpid(), duration=3, include_children=True, linux=True)
     
     def test_main(self):
         sys.argv = ['psrecord', '--duration=3', "'sleep 10'"]
