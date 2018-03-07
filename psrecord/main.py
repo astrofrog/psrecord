@@ -218,7 +218,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
                     if (linux):
-                        current_mem_uss = current_mem.uss / 1024. ** 2
+                        current_mem_uss += current_mem.uss / 1024. ** 2
 
             if logfile:
                 f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
@@ -260,12 +260,14 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
         ax.set_ylabel('CPU (%)', color='r')
         ax.set_xlabel('time (s)')
-        ax.set_ylim(0., max(log['cpu']) * 1.2)
+        max_val = max(log['cpu']) if log['cpu'] else 100
+        ax.set_ylim(0., max_val * 1.2)
         
         mem_selector = 'mem_uss' if linux else 'mem_real'
         ax2 = ax.twinx()
         ax2.plot(log['times'], log[mem_selector], '-', lw=1, color='b')
-        ax2.set_ylim(0., max(log[mem_selector]) * 1.2)
+        max_val = max(log[mem_selector]) if log[mem_selector] else 100
+        ax2.set_ylim(0., max_val * 1.2)
 
         mem_label= 'Unique set size (MB)' if linux else 'Real Memory (MB)'
         ax2.set_ylabel(mem_label, color='b')
