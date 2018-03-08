@@ -212,14 +212,14 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 for child in all_children(pr):
                     try:
                         current_cpu += get_percent(child)
-                        current_mem = get_memory(child)
+                        current_mem = get_memory(child, linux)
                     except:
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
                     if (linux):
                         current_mem_uss += current_mem.uss / 1024. ** 2
-
+            
             if logfile:
                 f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
                     current_time - start_time,
