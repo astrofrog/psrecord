@@ -25,4 +25,4 @@
 
 from .main import main  # noqa
 
-__version__ = '1.1'
+__version__ = '1.2.dev0'
