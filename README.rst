@@ -95,7 +95,7 @@ To include sub-processes in the CPU and memory stats, use:
 Running tests
 =============
 
-To run tests, you will need [pytest](https://docs.pytest.org/en/latest/). You can install it with::
+To run tests, you will need `pytest <https://docs.pytest.org/en/latest/>`_. You can install it with::
 
     pip install pytest
     
