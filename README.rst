@@ -32,7 +32,7 @@ Usage
 Basics
 ------
 
-To record the CPU and memory activity of an existing process to a file:
+To record the CPU and memory activity of an existing process to a file (use sudo for a root process):
 
 ::
 
