@@ -92,6 +92,17 @@ To include sub-processes in the CPU and memory stats, use:
 
     psrecord 1330 --log activity.txt --include-children
 
+Running tests
+=============
+
+To run tests, you will need [pytest](https://docs.pytest.org/en/latest/). You can install it with::
+
+    pip install pytest
+    
+You can then run the tests with::
+
+    pytest psrecord
+
 Reporting issues
 ================
 
