@@ -3,13 +3,14 @@ import sys
 import subprocess
 
 import psutil
-from ..main import main, monitor, all_children, is_uss_possible
+from ..main import main, monitor, all_children
 
 TEST_CODE = """
 import subprocess
 p = subprocess.Popen('sleep 5'.split())
 p.wait()
 """
+
 
 def test_all_children(tmpdir):
 
@@ -70,11 +71,11 @@ class TestMonitor(object):
         filename = tmpdir.join('test_logfile').strpath
         monitor(self.p.pid, logfile=filename, duration=3, uss=True)
         assert os.path.exists(filename)
-    
+
     def test_plot_uss(self, tmpdir):
         filename = tmpdir.join('test_plot.png').strpath
         monitor(self.p.pid, plot=filename, duration=3, uss=True)
         assert os.path.exists(filename)
-    
+
     def test_uss_with_children(self, tmpdir):
         monitor(os.getpid(), duration=3, include_children=True, uss=True)

@@ -68,6 +68,7 @@ def is_uss_possible(process):
         print ("Flag --uss is ignored. Not found method memory_full_info()")
         return False
 
+
 def main():
 
     parser = argparse.ArgumentParser(
@@ -134,14 +135,13 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     import psutil
 
     pr = psutil.Process(pid)
-   
     # Check is it possible to use --uss flag
     if uss:
         try:
             pr.memory_full_info()
             uss = True
         except AttributeError:
-            print ("Flag --uss is ignored. Not found method memory_full_info()")
+            print ("Flag --uss is ignored. Not found memory_full_info()")
             uss = False
 
     # Record start time
@@ -155,7 +155,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             'Real (MB)'.center(12),
             'Virtual (MB)'.center(12))
         )
-        if (uss): 
+        if(uss):
             f.write(" {0:12s}".format(
                 'USS (MB)'.center(12))
             )
@@ -224,7 +224,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_cpu,
                     current_mem_real,
                     current_mem_virtual))
-                if (uss): 
+                if (uss):
                     f.write(" {0:12.3f}".format(current_mem_uss))
                 f.write("\n")
                 f.flush()
@@ -266,7 +266,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         ax2.plot(log['times'], log[mem_selector], '-', lw=1, color='b')
         ax2.set_ylim(0., max(log[mem_selector]) * 1.2)
 
-        mem_label= 'Unique set size (MB)' if uss else 'Real Memory (MB)'
+        mem_label = 'Unique set size (MB)' if uss else 'Real Memory (MB)'
         ax2.set_ylabel(mem_label, color='b')
 
         ax.grid()
