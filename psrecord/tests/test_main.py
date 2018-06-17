@@ -3,7 +3,7 @@ import sys
 import subprocess
 
 import psutil
-from ..main import main, monitor, all_children
+from ..main import main, monitor, all_children, is_uss_possible
 
 TEST_CODE = """
 import subprocess
@@ -70,8 +70,6 @@ class TestMonitor(object):
         filename = tmpdir.join('test_logfile').strpath
         monitor(self.p.pid, logfile=filename, duration=3, uss=True)
         assert os.path.exists(filename)
-        # is_uss_active = (open(filename, 'r').readlines()[0].find("USS") > 0)
-        # assert is_uss_active == True
     
     def test_plot_uss(self, tmpdir):
         filename = tmpdir.join('test_plot.png').strpath

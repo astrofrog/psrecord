@@ -60,6 +60,14 @@ def all_children(pr):
     return processes
 
 
+def is_uss_possible(process):
+    try:
+        process.memory_full_info()
+        return True
+    except AttributeError:
+        print ("Flag --uss is ignored. Not found method memory_full_info()")
+        return False
+
 def main():
 
     parser = argparse.ArgumentParser(
