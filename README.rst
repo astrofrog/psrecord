@@ -32,7 +32,7 @@ Usage
 Basics
 ------
 
-To record the CPU and memory activity of an existing process to a file:
+To record the CPU and memory activity of an existing process to a file (use sudo for a root process):
 
 ::
 
@@ -92,17 +92,16 @@ To include sub-processes in the CPU and memory stats, use:
 
     psrecord 1330 --log activity.txt --include-children
 
-Memory on linux 
-------------
+Running tests
+=============
 
-To record memory activity on linux system as "real memory" 
-better suited unique set size (USS). Uss is the portion of
-main memory (RAM) occupied by a process which is guaranteed to
-be private to that process:
+To run tests, you will need `pytest <https://docs.pytest.org/en/latest/>`_. You can install it with::
 
-::
+    pip install pytest
+    
+You can then run the tests with::
 
-    psrecord 1330 --log activity.txt --linux
+    pytest psrecord
 
 Reporting issues
 ================

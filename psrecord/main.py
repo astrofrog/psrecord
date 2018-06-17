@@ -64,21 +64,8 @@ def all_children(pr):
 
 
 def is_uss_possible():
-    #Test is platform linux
-    if (_platform == "linux" or _platform == "linux2"):
-        #Linux option works only with psutil version +2.6x on Linux
-        if (psutil.version_info >= (2, 6)):
-            return True
-        else: 
-            print (("Warning: flag --linux ignored. Version of psutil module have"
-                "to be greater than 2.6 to use --linux flag. Your version is: "
-                "{0:d}.{1:d}").format(psutil.version_info[0], psutil.version_info[1]))
-            return False
-    else:
-        print (("Warning: flag --linux ignored. Your OS detected "
-                "as: {0:s}").format(_platform))
-        return False
-
+    #USS works only on linux platforms only with psutil version +2.6x on Linux
+    return ((_platform == "linux" or _platform == "linux2") and psutil.version_info >= (2, 6))
 
 def main():
 
@@ -109,12 +96,6 @@ def main():
                              'in a slower maximum sampling rate).',
                         action='store_true')
 
-    parser.add_argument('--linux', 
-                        help='in additional to real memory usage show unique '
-                             'set size (USS) as more suitable to know how '
-                             'much memory program were using.',
-                        action='store_true')
-
     args = parser.parse_args()
 
     # Attach to process
@@ -131,18 +112,15 @@ def main():
         pid = sprocess.pid
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children, 
-            linux=args.linux)
+            interval=args.interval, include_children=args.include_children)
 
     if sprocess is not None:
         sprocess.kill()
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False, linux=False):
+            include_children=False):
    
-    #If flag linux true test is it possible to use this flag
-    if (linux):
-        linux = is_uss_possible()
+    linux = is_uss_possible()
 
     pr = psutil.Process(pid)
 
