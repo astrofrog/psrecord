@@ -1,7 +1,12 @@
-1.1 (unreleased)
+1.2 (unreleased)
 ----------------
 
-- No changes yet
+- No changes yet.
+
+1.1 (2018-06-16)
+----------------
+
+- Fixed installation via pip if psutil was not installed. [#37]
 
 1.0 (2016-12-05)
 ----------------

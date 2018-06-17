@@ -26,7 +26,6 @@
 from __future__ import (unicode_literals, division, print_function,
                         absolute_import)
 
-import psutil
 import time
 import argparse
 from sys import platform as _platform
@@ -103,7 +102,7 @@ def main():
         pid = int(args.process_id_or_command)
         print("Attaching to process {0}".format(pid))
         sprocess = None
-    except:
+    except Exception:
         import subprocess
         command = args.process_id_or_command
         print("Starting up command '{0}' and attaching to process"
@@ -121,6 +120,10 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             include_children=False):
    
     linux = is_uss_possible()
+
+    # We import psutil here so that the module can be imported even if psutil
+    # is not present (for example if accessing the version)
+    import psutil
 
     pr = psutil.Process(pid)
 
@@ -178,7 +181,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             try:
                 current_cpu = get_percent(pr)
                 current_mem = get_memory(pr, linux)
-            except:
+            except Exception:
                 break
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
@@ -191,7 +194,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     try:
                         current_cpu += get_percent(child)
                         current_mem = get_memory(child, linux)
-                    except:
+                    except Exception:
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
