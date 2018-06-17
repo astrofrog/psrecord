@@ -92,6 +92,18 @@ To include sub-processes in the CPU and memory stats, use:
 
     psrecord 1330 --log activity.txt --include-children
 
+USS memory
+---------
+
+The USS (Unique Set Size) is the memory which is unique to a process and 
+which would be freed if the process was terminated right now. USS option
+work only for Linux, Windows and OSX systems. To include USS in the memory 
+stats, use:
+
+::
+
+    psrecord 1330 --log activity.txt --uss
+
 Running tests
 =============
 
