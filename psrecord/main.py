@@ -28,6 +28,7 @@ from __future__ import (unicode_literals, division, print_function,
 
 import time
 import argparse
+from sys import platform as _platform
 
 
 def get_percent(process):
@@ -37,9 +38,10 @@ def get_percent(process):
         return process.get_cpu_percent()
 
 
-def get_memory(process):
+def get_memory(process, use_uss):
     try:
-        return process.memory_info()
+        memory_info = process.memory_full_info() if (use_uss) else process.memory_info()
+        return memory_info
     except AttributeError:
         return process.get_memory_info()
 
@@ -59,6 +61,10 @@ def all_children(pr):
         processes += all_children(child)
     return processes
 
+
+def is_uss_possible():
+    #USS works only on linux platforms only with psutil version +2.6x on Linux
+    return ((_platform == "linux" or _platform == "linux2") and psutil.version_info >= (2, 6))
 
 def main():
 
@@ -110,9 +116,10 @@ def main():
     if sprocess is not None:
         sprocess.kill()
 
-
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             include_children=False):
+   
+    linux = is_uss_possible()
 
     # We import psutil here so that the module can be imported even if psutil
     # is not present (for example if accessing the version)
@@ -125,18 +132,25 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
     if logfile:
         f = open(logfile, 'w')
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
+        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}".format(
             'Elapsed time'.center(12),
             'CPU (%)'.center(12),
             'Real (MB)'.center(12),
             'Virtual (MB)'.center(12))
         )
+        if (linux): 
+            f.write(" {0:12s}".format(
+                'USS (MB)'.center(12))
+            )
+        f.write("\n")
 
     log = {}
     log['times'] = []
     log['cpu'] = []
     log['mem_real'] = []
     log['mem_virtual'] = []
+    if (linux):
+        log['mem_uss'] = []
 
     try:
 
@@ -166,29 +180,36 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             # Get current CPU and memory
             try:
                 current_cpu = get_percent(pr)
-                current_mem = get_memory(pr)
+                current_mem = get_memory(pr, linux)
             except Exception:
                 break
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
+            if (linux):
+                current_mem_uss = current_mem.uss / 1024. ** 2
 
             # Get information for children
             if include_children:
                 for child in all_children(pr):
                     try:
                         current_cpu += get_percent(child)
-                        current_mem = get_memory(child)
+                        current_mem = get_memory(child, linux)
                     except Exception:
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
-
+                    if (linux):
+                        current_mem_uss += current_mem.uss / 1024. ** 2
+            
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
                     current_time - start_time,
                     current_cpu,
                     current_mem_real,
                     current_mem_virtual))
+                if (linux): 
+                    f.write(" {0:12.3f}".format(current_mem_uss))
+                    f.write("\n")
                 f.flush()
 
             if interval is not None:
@@ -200,6 +221,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
+                if (linux):
+                    log['mem_uss'].append(current_mem_uss)
 
     except KeyboardInterrupt:  # pragma: no cover
         pass
@@ -218,14 +241,17 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
         ax.set_ylabel('CPU (%)', color='r')
         ax.set_xlabel('time (s)')
-        ax.set_ylim(0., max(log['cpu']) * 1.2)
-
+        max_val = max(log['cpu']) if log['cpu'] else 100
+        ax.set_ylim(0., max_val * 1.2)
+        
+        mem_selector = 'mem_uss' if linux else 'mem_real'
         ax2 = ax.twinx()
+        ax2.plot(log['times'], log[mem_selector], '-', lw=1, color='b')
+        max_val = max(log[mem_selector]) if log[mem_selector] else 100
+        ax2.set_ylim(0., max_val * 1.2)
 
-        ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
-        ax2.set_ylim(0., max(log['mem_real']) * 1.2)
-
-        ax2.set_ylabel('Real Memory (MB)', color='b')
+        mem_label= 'Unique set size (MB)' if linux else 'Real Memory (MB)'
+        ax2.set_ylabel(mem_label, color='b')
 
         ax.grid()
 
