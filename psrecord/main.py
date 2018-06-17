@@ -59,16 +59,6 @@ def all_children(pr):
         processes += all_children(child)
     return processes
 
-
-def is_uss_possible(process):
-    try:
-        process.memory_full_info()
-        return True
-    except AttributeError:
-        print ("Flag --uss is ignored. Not found method memory_full_info()")
-        return False
-
-
 def main():
 
     parser = argparse.ArgumentParser(
@@ -141,7 +131,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             pr.memory_full_info()
             uss = True
         except AttributeError:
-            print ("Flag --uss is ignored. Not found memory_full_info()")
+            print("Flag --uss is ignored. Not found memory_full_info()")
             uss = False
 
     # Record start time
