@@ -37,9 +37,9 @@ def get_percent(process):
         return process.get_cpu_percent()
 
 
-def get_memory(process):
+def get_memory(process, is_uss=False):
     try:
-        return process.memory_info()
+        return process.memory_full_info() if is_uss else process.memory_info()
     except AttributeError:
         return process.get_memory_info()
 
@@ -89,6 +89,12 @@ def main():
                              'in a slower maximum sampling rate).',
                         action='store_true')
 
+    parser.add_argument('--uss',
+                        help='in additional to real memory usage show unique '
+                             'set size (USS) as more suitable to know how '
+                             'much memory program were using.',
+                        action='store_true')
+
     args = parser.parse_args()
 
     # Attach to process
@@ -105,38 +111,55 @@ def main():
         pid = sprocess.pid
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children)
+            interval=args.interval, include_children=args.include_children,
+            uss=args.uss)
 
     if sprocess is not None:
         sprocess.kill()
 
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False):
+            include_children=False, uss=False):
 
     # We import psutil here so that the module can be imported even if psutil
     # is not present (for example if accessing the version)
     import psutil
 
     pr = psutil.Process(pid)
+    # Check is it possible to use --uss flag
+    # If arised any exception then show message and --uss flag will be ignored
+    if uss:
+        try:
+            pr.memory_full_info()
+            uss = True
+        except Exception as e:
+            print('Flag --uss is ignored: ' + str(e))
+            uss = False
 
     # Record start time
     start_time = time.time()
 
     if logfile:
         f = open(logfile, 'w')
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
+        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}".format(
             'Elapsed time'.center(12),
             'CPU (%)'.center(12),
             'Real (MB)'.center(12),
             'Virtual (MB)'.center(12))
         )
+        if(uss):
+            f.write(" {0:12s}".format(
+                'USS (MB)'.center(12))
+            )
+        f.write("\n")
 
     log = {}
     log['times'] = []
     log['cpu'] = []
     log['mem_real'] = []
     log['mem_virtual'] = []
+    if (uss):
+        log['mem_uss'] = []
 
     try:
 
@@ -166,29 +189,36 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             # Get current CPU and memory
             try:
                 current_cpu = get_percent(pr)
-                current_mem = get_memory(pr)
+                current_mem = get_memory(pr, uss)
             except Exception:
                 break
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
+            if (uss):
+                current_mem_uss = current_mem.uss / 1024. ** 2
 
             # Get information for children
             if include_children:
                 for child in all_children(pr):
                     try:
                         current_cpu += get_percent(child)
-                        current_mem = get_memory(child)
+                        current_mem = get_memory(child, uss)
                     except Exception:
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
+                    if (uss):
+                        current_mem_uss += current_mem.uss / 1024. ** 2
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
                     current_time - start_time,
                     current_cpu,
                     current_mem_real,
                     current_mem_virtual))
+                if (uss):
+                    f.write(" {0:12.3f}".format(current_mem_uss))
+                f.write("\n")
                 f.flush()
 
             if interval is not None:
@@ -200,6 +230,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
+                if (uss):
+                    log['mem_uss'].append(current_mem_uss)
 
     except KeyboardInterrupt:  # pragma: no cover
         pass
@@ -220,12 +252,14 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         ax.set_xlabel('time (s)')
         ax.set_ylim(0., max(log['cpu']) * 1.2)
 
+        mem_selector = 'mem_uss' if uss else 'mem_real'
         ax2 = ax.twinx()
 
-        ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
-        ax2.set_ylim(0., max(log['mem_real']) * 1.2)
+        ax2.plot(log['times'], log[mem_selector], '-', lw=1, color='b')
+        ax2.set_ylim(0., max(log[mem_selector]) * 1.2)
 
-        ax2.set_ylabel('Real Memory (MB)', color='b')
+        mem_label = 'Unique set size (MB)' if uss else 'Real Memory (MB)'
+        ax2.set_ylabel(mem_label, color='b')
 
         ax.grid()
 

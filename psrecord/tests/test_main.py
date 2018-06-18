@@ -66,3 +66,16 @@ class TestMonitor(object):
     def test_main_by_id(self):
         sys.argv = ['psrecord', '--duration=3', str(os.getpid())]
         main()
+
+    def test_logfile_uss(self, tmpdir):
+        filename = tmpdir.join('test_logfile').strpath
+        monitor(self.p.pid, logfile=filename, duration=3, uss=True)
+        assert os.path.exists(filename)
+
+    def test_plot_uss(self, tmpdir):
+        filename = tmpdir.join('test_plot.png').strpath
+        monitor(self.p.pid, plot=filename, duration=3, uss=True)
+        assert os.path.exists(filename)
+
+    def test_uss_with_children(self, tmpdir):
+        monitor(os.getpid(), duration=3, include_children=True, uss=True)
