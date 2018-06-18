@@ -127,12 +127,13 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
     pr = psutil.Process(pid)
     # Check is it possible to use --uss flag
+    # If arised any exception then show message and --uss flag will be ignored
     if uss:
         try:
             pr.memory_full_info()
             uss = True
-        except AttributeError:
-            print("Flag --uss is ignored. Not found memory_full_info()")
+        except Exception as e:
+            print('Flag --uss is ignored: ' + str(e))
             uss = False
 
     # Record start time
