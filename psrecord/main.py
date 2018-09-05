@@ -209,6 +209,9 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
     if plot:
 
+        # Use non-interactive backend, to enable operation on headless machines.
+        import matplotlib as mpl
+        mpl.use('Agg')
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
