@@ -210,26 +210,25 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     if plot:
 
         # Use non-interactive backend, to enable operation on headless machines.
-        import matplotlib as mpl
-        mpl.use('Agg')
         import matplotlib.pyplot as plt
+        with plt.rc_context({'backend': 'Agg'}):
 
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
 
-        ax.plot(log['times'], log['cpu'], '-', lw=1, color='r')
+            ax.plot(log['times'], log['cpu'], '-', lw=1, color='r')
 
-        ax.set_ylabel('CPU (%)', color='r')
-        ax.set_xlabel('time (s)')
-        ax.set_ylim(0., max(log['cpu']) * 1.2)
+            ax.set_ylabel('CPU (%)', color='r')
+            ax.set_xlabel('time (s)')
+            ax.set_ylim(0., max(log['cpu']) * 1.2)
 
-        ax2 = ax.twinx()
+            ax2 = ax.twinx()
 
-        ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
-        ax2.set_ylim(0., max(log['mem_real']) * 1.2)
+            ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
+            ax2.set_ylim(0., max(log['mem_real']) * 1.2)
 
-        ax2.set_ylabel('Real Memory (MB)', color='b')
+            ax2.set_ylabel('Real Memory (MB)', color='b')
 
-        ax.grid()
+            ax.grid()
 
-        fig.savefig(plot)
+            fig.savefig(plot)
