@@ -8,13 +8,14 @@ env:
     matrix:
         - PYTHON_VERSION=2.7 PSUTIL_VERSION=1
         - PYTHON_VERSION=2.7 PSUTIL_VERSION=2
-        - PYTHON_VERSION=3.3 PSUTIL_VERSION=3
+        - PYTHON_VERSION=2.7 PSUTIL_VERSION=3
         - PYTHON_VERSION=3.4 PSUTIL_VERSION=4
         - PYTHON_VERSION=3.5 PSUTIL_VERSION=5
         - PYTHON_VERSION=3.6 PSUTIL_VERSION=5
+        - PYTHON_VERSION=3.7 PSUTIL_VERSION=5
     global:
         - CONDA_DEPENDENCIES='matplotlib psutil'
-        - PIP_DEPENDENCIES='coveralls pytest-cov'
+        - PIP_DEPENDENCIES='codecov pytest-cov'
         - SETUP_XVFB=True
 
 before_install:
@@ -30,4 +31,4 @@ script:
     - flake8 psrecord
 
 after_success:
-    - coveralls
+    - codecov
