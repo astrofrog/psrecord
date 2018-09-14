@@ -28,6 +28,7 @@ from __future__ import (unicode_literals, division, print_function,
 
 import time
 import argparse
+import csv
 
 
 def get_percent(process):
@@ -69,7 +70,7 @@ def main():
                         help='the process id or command')
 
     parser.add_argument('--log', type=str,
-                        help='output the statistics to a file')
+                        help='output the statistics to a csv file')
 
     parser.add_argument('--plot', type=str,
                         help='output the statistics to a plot')
@@ -124,13 +125,11 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     start_time = time.time()
 
     if logfile:
+        fields = ['time', 'cpu', 'mem_real', 'mem_virtual']
         f = open(logfile, 'w')
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
-            'Elapsed time'.center(12),
-            'CPU (%)'.center(12),
-            'Real (MB)'.center(12),
-            'Virtual (MB)'.center(12))
-        )
+        stat_writer = csv.DictWriter(f, fieldnames=fields,
+                                     extrasaction='ignore')
+        stat_writer.writeheader()
 
     log = {}
     log['times'] = []
@@ -184,11 +183,11 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_virtual += current_mem.vms / 1024. ** 2
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
-                    current_time - start_time,
-                    current_cpu,
-                    current_mem_real,
-                    current_mem_virtual))
+                stat_writer.writerow({
+                    'time': current_time - start_time,
+                    'cpu': current_cpu,
+                    'mem_real': current_mem_real,
+                    'mem_virtual': current_mem_virtual})
                 f.flush()
 
             if interval is not None:
