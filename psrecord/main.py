@@ -27,6 +27,7 @@ from __future__ import (unicode_literals, division, print_function,
                         absolute_import)
 
 import time
+import statistics
 import argparse
 
 
@@ -84,6 +85,11 @@ def main():
                              'seconds). By default the process is sampled '
                              'as often as possible.')
 
+    parser.add_argument('--smooth', type=int,
+                        help='when plotting, take the average of X samples ('
+                             'as defined by --interval) to increase the '
+                             'smoothness of the graph')
+
     parser.add_argument('--include-children',
                         help='include sub-processes in statistics (results '
                              'in a slower maximum sampling rate).',
@@ -105,14 +111,15 @@ def main():
         pid = sprocess.pid
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children)
+            interval=args.interval, smooth=args.smooth,
+            include_children=args.include_children)
 
     if sprocess is not None:
         sprocess.kill()
 
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False):
+            smooth=None, include_children=False):
 
     # We import psutil here so that the module can be imported even if psutil
     # is not present (for example if accessing the version)
@@ -137,6 +144,9 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     log['cpu'] = []
     log['mem_real'] = []
     log['mem_virtual'] = []
+
+    # Used when `--smooth` is in effect.
+    samples = []
 
     try:
 
@@ -183,6 +193,21 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
 
+            if smooth:
+                samples.append((current_cpu, current_mem_real, current_mem_virtual))
+                if len(samples) < smooth:
+                    # Don't plot/log yet, wait for a completed sample window.
+                    if interval is not None:
+                        time.sleep(interval)
+                    continue
+
+            if smooth:
+                # Calculate the average of all the samples in our window.
+                current_cpu = statistics.mean([s[0] for s in samples])
+                current_mem_real = statistics.mean([s[1] for s in samples])
+                current_mem_virtual = statistics.mean([s[2] for s in samples])
+                samples[:] = []
+
             if logfile:
                 f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
                     current_time - start_time,
@@ -191,7 +216,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_virtual))
                 f.flush()
 
-            if interval is not None:
+            if not smooth and interval is not None:
                 time.sleep(interval)
 
             # If plotting, record the values
