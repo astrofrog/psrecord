@@ -90,10 +90,6 @@ def main():
                              'in a slower maximum sampling rate).',
                         action='store_true')
 
-    parser.add_argument('--use-unix-ts',
-                        help='When used, time would be logged in unix timestamp',
-                        action='store_true')
-
     args = parser.parse_args()
 
     # Attach to process
@@ -110,15 +106,14 @@ def main():
         pid = sprocess.pid
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children,
-            use_unix_ts=args.use_unix_ts)
+            interval=args.interval, include_children=args.include_children)
 
     if sprocess is not None:
         sprocess.kill()
 
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False, use_unix_ts=False):
+            include_children=False):
 
     pr = psutil.Process(pid)
 
@@ -127,14 +122,16 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
     if logfile:
         f = open(logfile, 'w')
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
-            'Elapsed time'.center(12),
+        f.write("{0:12s} {1:12s} {2:12s} {3:12s} {4:12s}\n".format(
+            'Current Time'.center(12),
+            'Elapsed Time'.center(12),
             'CPU (%)'.center(12),
             'Real (MB)'.center(12),
             'Virtual (MB)'.center(12))
         )
 
     log = {}
+    log['current_time'] = []
     log['times'] = []
     log['cpu'] = []
     log['mem_real'] = []
@@ -147,8 +144,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # Find current time
             current_time = time.time()
-            logged_time = (current_time - start_time) if not use_unix_ts \
-                else current_time
+            logged_time = (current_time - start_time)
 
             try:
                 pr_status = pr.status()
@@ -188,7 +184,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_virtual += current_mem.vms / 1024. ** 2
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} {4:12.3f}\n".format(
+                    current_time,
                     logged_time,
                     current_cpu,
                     current_mem_real,
@@ -200,6 +197,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # If plotting, record the values
             if plot:
+                log['current_time'].append(current_time)
                 log['times'].append(logged_time)
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
