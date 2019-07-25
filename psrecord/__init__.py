@@ -24,5 +24,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from .main import main  # noqa
+from .main import monitor
 
 __version__ = '1.2.dev0'
