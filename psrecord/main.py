@@ -29,6 +29,7 @@ from __future__ import (unicode_literals, division, print_function,
 import time
 import argparse
 
+children = []
 
 def get_percent(process):
     try:
@@ -45,19 +46,20 @@ def get_memory(process):
 
 
 def all_children(pr):
-    processes = []
-    children = []
+    global children
+
     try:
-        children = pr.children()
+        children_of_pr = pr.children()
     except AttributeError:
-        children = pr.get_children()
+        children_of_pr = pr.get_children()
     except Exception:  # pragma: no cover
         pass
 
-    for child in children:
-        processes.append(child)
-        processes += all_children(child)
-    return processes
+    for child in children_of_pr:
+        if not child in children:
+            children.append(child)
+            all_children(child)
+    return children
 
 
 def main():
