@@ -31,6 +31,7 @@ import argparse
 
 children = []
 
+
 def get_percent(process):
     try:
         return process.cpu_percent()
@@ -56,7 +57,7 @@ def all_children(pr):
         pass
 
     for child in children_of_pr:
-        if not child in children:
+        if child not in children:
             children.append(child)
             all_children(child)
     return children
