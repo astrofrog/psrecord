@@ -29,35 +29,31 @@ from __future__ import (unicode_literals, division, print_function,
 import time
 import argparse
 
+children = []
+
 
 def get_percent(process):
-    try:
-        return process.cpu_percent()
-    except AttributeError:
-        return process.get_cpu_percent()
+    return process.cpu_percent()
 
 
 def get_memory(process):
-    try:
-        return process.memory_info()
-    except AttributeError:
-        return process.get_memory_info()
+    return process.memory_info()
 
 
 def all_children(pr):
-    processes = []
-    children = []
-    try:
-        children = pr.children()
-    except AttributeError:
-        children = pr.get_children()
-    except Exception:  # pragma: no cover
-        pass
 
-    for child in children:
-        processes.append(child)
-        processes += all_children(child)
-    return processes
+    global children
+
+    try:
+        children_of_pr = pr.children(recursive=True)
+    except Exception:  # pragma: no cover
+        return children
+
+    for child in children_of_pr:
+        if child not in children:
+            children.append(child)
+
+    return children
 
 
 def main():
