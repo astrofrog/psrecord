@@ -1,7 +1,11 @@
-1.2 (unreleased)
+1.2 (2020-05-28)
 ----------------
 
-- No changes yet.
+- Fixed compatibility with latest versions of psutil and fixed issue with
+  determining CPU usage from child processes. [#56]
+
+- Fixed plotting to work on machines where Agg is not the default
+  Matplotlib backend. [#44]
 
 1.1 (2018-06-16)
 ----------------
