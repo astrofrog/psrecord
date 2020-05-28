@@ -33,33 +33,26 @@ children = []
 
 
 def get_percent(process):
-    try:
-        return process.cpu_percent()
-    except AttributeError:
-        return process.get_cpu_percent()
+    return process.cpu_percent()
 
 
 def get_memory(process):
-    try:
-        return process.memory_info()
-    except AttributeError:
-        return process.get_memory_info()
+    return process.memory_info()
 
 
 def all_children(pr):
+
     global children
 
     try:
-        children_of_pr = pr.children()
-    except AttributeError:
-        children_of_pr = pr.get_children()
+        children_of_pr = pr.children(recursive=True)
     except Exception:  # pragma: no cover
         pass
 
     for child in children_of_pr:
         if child not in children:
             children.append(child)
-            all_children(child)
+
     return children
 
 
