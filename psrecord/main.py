@@ -47,7 +47,7 @@ def all_children(pr):
     try:
         children_of_pr = pr.children(recursive=True)
     except Exception:  # pragma: no cover
-        pass
+        return children
 
     for child in children_of_pr:
         if child not in children:
