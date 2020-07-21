@@ -121,14 +121,16 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
     if logfile:
         f = open(logfile, 'w')
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
-            'Elapsed time'.center(12),
+        f.write("{0:12s} {1:12s} {2:12s} {3:12s} {4:12s}\n".format(
+            'Current Time'.center(12),
+            'Elapsed Time'.center(12),
             'CPU (%)'.center(12),
             'Real (MB)'.center(12),
             'Virtual (MB)'.center(12))
         )
 
     log = {}
+    log['current_time'] = []
     log['times'] = []
     log['cpu'] = []
     log['mem_real'] = []
@@ -141,6 +143,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # Find current time
             current_time = time.time()
+            logged_time = (current_time - start_time)
 
             try:
                 pr_status = pr.status()
@@ -152,7 +155,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             # Check if process status indicates we should exit
             if pr_status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
                 print("Process finished ({0:.2f} seconds)"
-                      .format(current_time - start_time))
+                      .format(logged_time))
                 break
 
             # Check if we have reached the maximum time
@@ -180,8 +183,9 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_virtual += current_mem.vms / 1024. ** 2
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
-                    current_time - start_time,
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} {4:12.3f}\n".format(
+                    current_time,
+                    logged_time,
                     current_cpu,
                     current_mem_real,
                     current_mem_virtual))
@@ -192,7 +196,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # If plotting, record the values
             if plot:
-                log['times'].append(current_time - start_time)
+                log['current_time'].append(current_time)
+                log['times'].append(logged_time)
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
