@@ -35,10 +35,11 @@ children = []
 def get_percent(process):
     return process.cpu_percent()
 
-
 def get_memory(process):
     return process.memory_info()
 
+def get_diskio(process):
+    return process.io_counters()
 
 def all_children(pr):
 
@@ -121,11 +122,13 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
     if logfile:
         f = open(logfile, 'w')
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
+        f.write("# {0:12s} {1:12s} {2:12s} {3:12s} {4:12s} {5:12s}\n".format(
             'Elapsed time'.center(12),
             'CPU (%)'.center(12),
             'Real (MB)'.center(12),
-            'Virtual (MB)'.center(12))
+            'Virtual (MB)'.center(12),
+            'Disk Read (MB/s)'.center(12),
+            'Disk Write (MB/s)'.center(12))
         )
 
     log = {}
@@ -133,12 +136,18 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     log['cpu'] = []
     log['mem_real'] = []
     log['mem_virtual'] = []
+    log['disk_read'] = []
+    log['disk_write'] = []
 
     try:
-
+        previous_time = time.time()
+        current_time = time.time()
+        prev_disk_read = 0
+        prev_disk_write = 0
+        disk_stat_started = False # there's no prev data to compare.
         # Start main event loop
         while True:
-
+            previous_time = current_time # Save the old time for disk io calculation
             # Find current time
             current_time = time.time()
 
@@ -163,10 +172,13 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             try:
                 current_cpu = get_percent(pr)
                 current_mem = get_memory(pr)
+                current_diskio = get_diskio(pr)
             except Exception:
                 break
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
+            current_disk_read = current_diskio.read_bytes / 1024. ** 2 # In MB
+            current_disk_write = current_diskio.write_bytes / 1024. ** 2 # In MB
 
             # Get information for children
             if include_children:
@@ -179,12 +191,27 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_real += current_mem.rss / 1024. ** 2
                     current_mem_virtual += current_mem.vms / 1024. ** 2
 
+            # Calculate disk io
+            disk_rd_rate = 0 # MB/s
+            disk_wr_rate = 0 # MB/s
+            if disk_stat_started:
+                disk_rd_rate = (current_disk_read - prev_disk_read)/(current_time-previous_time)
+                disk_wr_rate = (current_disk_write - prev_disk_write)/(current_time-previous_time)
+                prev_disk_read = current_disk_read
+                prev_disk_write = current_disk_write
+            else: # If this is new disk stat, no prev data to compute rate. Leave rate to 0.
+                prev_disk_read = current_disk_read
+                prev_disk_write = current_disk_write
+                disk_stat_started = True
+    
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} {4:12.3f} {5:12.3f}\n".format(
                     current_time - start_time,
                     current_cpu,
                     current_mem_real,
-                    current_mem_virtual))
+                    current_mem_virtual,
+                    disk_rd_rate,
+                    disk_wr_rate))
                 f.flush()
 
             if interval is not None:
@@ -196,6 +223,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
+                log['disk_read'].append(disk_rd_rate)
+                log['disk_write'].append(disk_wr_rate)
 
     except KeyboardInterrupt:  # pragma: no cover
         pass
@@ -209,22 +238,37 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         import matplotlib.pyplot as plt
         with plt.rc_context({'backend': 'Agg'}):
 
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
+            # fig = plt.figure()
+            # axcpu = fig.add_subplot(1, 1, 1)
+            
+            fig, axcpu = plt.subplots()
+            fig.subplots_adjust(right=0.75)
 
-            ax.plot(log['times'], log['cpu'], '-', lw=1, color='r')
+            axcpu.plot(log['times'], log['cpu'], '-', lw=1, color='r')
 
-            ax.set_ylabel('CPU (%)', color='r')
-            ax.set_xlabel('time (s)')
-            ax.set_ylim(0., max(log['cpu']) * 1.2)
+            axcpu.set_ylabel('CPU (%)', color='r')
+            axcpu.set_xlabel('time (s)')
+            axcpu.set_ylim(0., max(log['cpu']) * 1.2)
 
-            ax2 = ax.twinx()
+            axram = axcpu.twinx()
 
-            ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
-            ax2.set_ylim(0., max(log['mem_real']) * 1.2)
+            axram.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
+            axram.set_ylim(0., max(log['mem_real']) * 1.2)
 
-            ax2.set_ylabel('Real Memory (MB)', color='b')
+            axram.set_ylabel('Real Memory (MB)', color='b')
 
-            ax.grid()
+            axdisk = axcpu.twinx()
+            axdisk.spines["right"].set_position(("axes", 1.2))
+            prd, = axdisk.plot(log['times'], log['disk_read'], '-', lw=1, color='c', label="Disk Read")
+            pwr, = axdisk.plot(log['times'], log['disk_write'], '-', lw=1, color='m', label="Disk Write")
+            axdisk.set_ylim(0., max(max(log['disk_read']), max(log['disk_write'])) * 1.2)
+
+            axdisk.set_ylabel('Disk I/O (MB/s)', color='k')
+            
+            lines = [prd, pwr]
+
+            axcpu.legend(lines, [l.get_label() for l in lines])
+
+            axcpu.grid()
 
             fig.savefig(plot)
