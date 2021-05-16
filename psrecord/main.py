@@ -35,11 +35,14 @@ children = []
 def get_percent(process):
     return process.cpu_percent()
 
+
 def get_memory(process):
     return process.memory_info()
 
+
 def get_diskio(process):
     return process.io_counters()
+
 
 def all_children(pr):
 
@@ -144,10 +147,11 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         current_time = time.time()
         prev_disk_read = 0
         prev_disk_write = 0
-        disk_stat_started = False # there's no prev data to compare.
+        disk_stat_started = False   # no prev data
+        
         # Start main event loop
         while True:
-            previous_time = current_time # Save the old time for disk io calculation
+            previous_time = current_time    # Save the old time for disk io calculation
             # Find current time
             current_time = time.time()
 
@@ -175,10 +179,11 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 current_diskio = get_diskio(pr)
             except Exception:
                 break
+
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
-            current_disk_read = current_diskio.read_bytes / 1024. ** 2 # In MB
-            current_disk_write = current_diskio.write_bytes / 1024. ** 2 # In MB
+            current_disk_read = current_diskio.read_bytes / 1024. ** 2  # In MB
+            current_disk_write = current_diskio.write_bytes / 1024. ** 2    # In MB
 
             # Get information for children
             if include_children:
@@ -192,14 +197,14 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     current_mem_virtual += current_mem.vms / 1024. ** 2
 
             # Calculate disk io
-            disk_rd_rate = 0 # MB/s
-            disk_wr_rate = 0 # MB/s
+            disk_rd_rate = 0    # MB/s
+            disk_wr_rate = 0    # MB/s
             if disk_stat_started:
-                disk_rd_rate = (current_disk_read - prev_disk_read)/(current_time-previous_time)
-                disk_wr_rate = (current_disk_write - prev_disk_write)/(current_time-previous_time)
+                disk_rd_rate = (current_disk_read - prev_disk_read)/(current_time - previous_time)
+                disk_wr_rate = (current_disk_write - prev_disk_write)/(current_time - previous_time)
                 prev_disk_read = current_disk_read
                 prev_disk_write = current_disk_write
-            else: # If this is new disk stat, no prev data to compute rate. Leave rate to 0.
+            else:   # If this is new disk stat, no prev data to compute rate. Leave rate to 0.
                 prev_disk_read = current_disk_read
                 prev_disk_write = current_disk_write
                 disk_stat_started = True
@@ -267,7 +272,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             
             lines = [prd, pwr]
 
-            axcpu.legend(lines, [l.get_label() for l in lines])
+            axcpu.legend(lines, [line.get_label() for line in lines])
 
             axcpu.grid()
 
