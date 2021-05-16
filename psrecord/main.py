@@ -175,14 +175,14 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             try:
                 current_cpu = get_percent(pr)
                 current_mem = get_memory(pr)
-                current_diskio = get_diskio(pr)
+                cur_diskio = get_diskio(pr)
             except Exception:
                 break
 
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
-            current_disk_read = current_diskio.read_bytes / 1024. ** 2  # In MB
-            current_disk_write = current_diskio.write_bytes / 1024. ** 2    # In MB
+            current_disk_read = cur_diskio.read_bytes / 1024. ** 2  # In MB
+            current_disk_write = cur_diskio.write_bytes / 1024. ** 2    # In MB
 
             # Get information for children
             if include_children:
@@ -212,11 +212,12 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 disk_stat_started = True
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} {} {}\n".format(
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} ".format(
                     current_time - start_time,
                     current_cpu,
                     current_mem_real,
-                    current_mem_virtual,
+                    current_mem_virtual))
+                f.write("{0:12.3f} {1:12.3f}\n".format(
                     disk_rd_rate,
                     disk_wr_rate))
                 f.flush()
@@ -267,20 +268,20 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             axio = axcpu.twinx()
             axio.spines["right"].set_position(("axes", 1.2))
             prd, = axio.plot(
-                log['times'], 
-                log['iord'], 
-                '-', 
-                lw=1, 
-                color='c', 
+                log['times'],
+                log['iord'],
+                '-',
+                lw=1,
+                color='c',
                 label="IO Read"
             )
 
             pwr, = axio.plot(
-                log['times'], 
-                log['iowr'], 
-                '-', 
-                lw=1, 
-                color='m', 
+                log['times'],
+                log['iowr'],
+                '-',
+                lw=1,
+                color='m',
                 label="IO Write"
             )
 
