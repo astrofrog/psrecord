@@ -139,8 +139,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     log['cpu'] = []
     log['mem_real'] = []
     log['mem_virtual'] = []
-    log['disk_read'] = []
-    log['disk_write'] = []
+    log['iord'] = []
+    log['iowr'] = []
 
     try:
         previous_time = time.time()
@@ -148,12 +148,11 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         prev_disk_read = 0
         prev_disk_write = 0
         disk_stat_started = False   # no prev data
-        
+
         # Start main event loop
         while True:
-            previous_time = current_time    # Save the old time for disk io calculation
-            # Find current time
-            current_time = time.time()
+            previous_time = current_time    # Save the old time
+            current_time = time.time()  # Find current time
 
             try:
                 pr_status = pr.status()
@@ -200,17 +199,20 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             disk_rd_rate = 0    # MB/s
             disk_wr_rate = 0    # MB/s
             if disk_stat_started:
-                disk_rd_rate = (current_disk_read - prev_disk_read)/(current_time - previous_time)
-                disk_wr_rate = (current_disk_write - prev_disk_write)/(current_time - previous_time)
+                time_elapse = current_time - previous_time
+                bytes_read = current_disk_read - prev_disk_read
+                bytes_written = current_disk_write - prev_disk_write
+                disk_rd_rate = bytes_read/time_elapse
+                disk_wr_rate = bytes_written/time_elapse
                 prev_disk_read = current_disk_read
                 prev_disk_write = current_disk_write
-            else:   # If this is new disk stat, no prev data to compute rate. Leave rate to 0.
+            else:   # Leave rate to 0.
                 prev_disk_read = current_disk_read
                 prev_disk_write = current_disk_write
                 disk_stat_started = True
-    
+
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} {4:12.3f} {5:12.3f}\n".format(
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} {} {}\n".format(
                     current_time - start_time,
                     current_cpu,
                     current_mem_real,
@@ -228,8 +230,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
-                log['disk_read'].append(disk_rd_rate)
-                log['disk_write'].append(disk_wr_rate)
+                log['iord'].append(disk_rd_rate)
+                log['iowr'].append(disk_wr_rate)
 
     except KeyboardInterrupt:  # pragma: no cover
         pass
@@ -245,7 +247,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # fig = plt.figure()
             # axcpu = fig.add_subplot(1, 1, 1)
-            
+
             fig, axcpu = plt.subplots()
             fig.subplots_adjust(right=0.75)
 
@@ -262,14 +264,30 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             axram.set_ylabel('Real Memory (MB)', color='b')
 
-            axdisk = axcpu.twinx()
-            axdisk.spines["right"].set_position(("axes", 1.2))
-            prd, = axdisk.plot(log['times'], log['disk_read'], '-', lw=1, color='c', label="Disk Read")
-            pwr, = axdisk.plot(log['times'], log['disk_write'], '-', lw=1, color='m', label="Disk Write")
-            axdisk.set_ylim(0., max(max(log['disk_read']), max(log['disk_write'])) * 1.2)
+            axio = axcpu.twinx()
+            axio.spines["right"].set_position(("axes", 1.2))
+            prd, = axio.plot(
+                log['times'], 
+                log['iord'], 
+                '-', 
+                lw=1, 
+                color='c', 
+                label="IO Read"
+            )
 
-            axdisk.set_ylabel('Disk I/O (MB/s)', color='k')
-            
+            pwr, = axio.plot(
+                log['times'], 
+                log['iowr'], 
+                '-', 
+                lw=1, 
+                color='m', 
+                label="IO Write"
+            )
+
+            axio.set_ylim(0., max(max(log['iord']), max(log['iowr'])) * 1.2)
+
+            axio.set_ylabel('Disk I/O (MB/s)', color='k')
+
             lines = [prd, pwr]
 
             axcpu.legend(lines, [line.get_label() for line in lines])
