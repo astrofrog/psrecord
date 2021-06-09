@@ -44,7 +44,7 @@ setup(name='psrecord',
       packages=['psrecord', 'psrecord.tests'],
       provides=['psrecord'],
       scripts=['scripts/psrecord'],
-      install_requires=['psutil'],
+      install_requires=['psutil>=2'],
       extras_require={
           'plot':  ["matplotlib"],
       },
