@@ -45,6 +45,9 @@ setup(name='psrecord',
       provides=['psrecord'],
       scripts=['scripts/psrecord'],
       install_requires=['psutil>=2'],
+      extras_require={
+          'plot':  ["matplotlib"],
+      },
       cmdclass={'build_py': build_py},
       classifiers=[
                    "Development Status :: 3 - Alpha",
