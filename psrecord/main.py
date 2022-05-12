@@ -26,6 +26,7 @@
 from __future__ import (unicode_literals, division, print_function,
                         absolute_import)
 
+import sys
 import time
 import argparse
 
@@ -62,13 +63,15 @@ def main():
         description='Record CPU and memory usage for a process')
 
     parser.add_argument('process_id_or_command', type=str,
-                        help='the process id or command')
+                        help='the process id or command.')
 
     parser.add_argument('--log', type=str,
-                        help='output the statistics to a file')
+                        help='output the statistics to a file. If neither '
+                             '--log nor --plot are specified, print to print '
+                             'to standard output.')
 
     parser.add_argument('--plot', type=str,
-                        help='output the statistics to a plot')
+                        help='output the statistics to a plot.')
 
     parser.add_argument('--duration', type=float,
                         help='how long to record for (in seconds). If not '
@@ -119,8 +122,15 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     # Record start time
     start_time = time.time()
 
-    if logfile:
+    f = None
+    if logfile is None and plot is None:
+        f = sys.stdout
+        # set logfile to '<stdout>'
+        logfile = f.name
+    elif logfile is not None:
         f = open(logfile, 'w')
+
+    if logfile:
         f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
             'Elapsed time'.center(12),
             'CPU (%)'.center(12),
@@ -200,7 +210,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     except KeyboardInterrupt:  # pragma: no cover
         pass
 
-    if logfile:
+    # close the logfile, if it's not stdout
+    if logfile and logfile != '<stdout>':
         f.close()
 
     if plot:
