@@ -227,4 +227,4 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             ax.grid()
 
-            fig.savefig(plot)
+            fig.savefig(plot, dpi=300)
