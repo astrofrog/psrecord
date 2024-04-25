@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 
+import pytest
 import psutil
 from ..main import main, monitor, all_children
 
@@ -55,6 +56,7 @@ class TestMonitor(object):
         assert len(open(filename, 'r').readlines()) > 0
 
     def test_plot(self, tmpdir):
+        pytest.importorskip("matplotlib")
         filename = tmpdir.join('test_plot.png').strpath
         monitor(self.p.pid, plot=filename, duration=3)
         assert os.path.exists(filename)

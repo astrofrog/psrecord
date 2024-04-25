@@ -26,6 +26,10 @@ To install, simply do::
 
     pip install psrecord
 
+To install with the optional plotting dependencies, do::
+
+    pip install psrecord[plot]
+
 Usage
 =====
 

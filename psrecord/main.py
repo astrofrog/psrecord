@@ -206,6 +206,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     if plot:
 
         # Use non-interactive backend, to enable operation on headless machines
+        # We import matplotlib here so that the module can be imported even if
+        # matplotlib is not present and the plotting option is unset
         import matplotlib.pyplot as plt
         with plt.rc_context({'backend': 'Agg'}):
 

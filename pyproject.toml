@@ -25,6 +25,9 @@ dependencies = [
 test = [
     "pytest>=7.0",
 ]
+plot = [
+    "matplotlib",
+]
 
 [project.license]
 text = "Simplified BSD License"
