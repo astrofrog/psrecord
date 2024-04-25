@@ -125,8 +125,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     f = None
     if logfile is None and plot is None:
         f = sys.stdout
-        # set logfile to '<stdout>'
-        logfile = f.name
+        logfile = '<stdout>'
     elif logfile is not None:
         f = open(logfile, 'w')
 
