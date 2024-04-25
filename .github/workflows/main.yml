@@ -1,0 +1,5 @@
+name: CI
+
+on:
+  push:
+  pull_request:
