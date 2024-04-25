@@ -3,3 +3,37 @@ name: CI
 on:
   push:
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  tests:
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    with:
+      envs: |
+        - linux: py39-test-psutil56
+        - linux: py310-test-psutil57
+        - linux: py311-test-psutil58
+        - linux: py312-test-psutil59
+
+        - macos: py39-test-psutil56
+        - macos: py310-test-psutil57
+        - macos: py311-test-psutil58
+        - macos: py312-test-psutil59
+
+        - windows: py39-test-psutil56
+        - windows: py310-test-psutil57
+        - windows: py311-test-psutil58
+        - windows: py312-test-psutil59
+
+  publish:
+    needs: tests
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish_pure_python.yml@v1
+    with:
+      test_extras: 'test'
+      test_command: pytest --pyargs psrecord
+    secrets:
+      pypi_token: ${{ secrets.pypi_token }}
