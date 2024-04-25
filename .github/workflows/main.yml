@@ -16,17 +16,17 @@ jobs:
       envs: |
         - linux: py39-test-psutil56
         - linux: py310-test-psutil57
-        - linux: py311-test-psutil58
+        - linux: py311-test-psutil58-alldeps
         - linux: py312-test-psutil59
 
         - macos: py39-test-psutil56
         - macos: py310-test-psutil57
-        - macos: py311-test-psutil58
+        - macos: py311-test-psutil58-alldeps
         - macos: py312-test-psutil59
 
         - windows: py39-test-psutil56
         - windows: py310-test-psutil57
-        - windows: py311-test-psutil58
+        - windows: py311-test-psutil58-alldeps
         - windows: py312-test-psutil59
 
   publish:
