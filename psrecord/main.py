@@ -88,6 +88,9 @@ def main():
                              'in a slower maximum sampling rate).',
                         action='store_true')
 
+    parser.add_argument('--include-io',
+                        help='include include_io I/O stats', action='store_true')
+
     args = parser.parse_args()
 
     # Attach to process
@@ -104,14 +107,15 @@ def main():
         pid = sprocess.pid
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children)
+            interval=args.interval, include_children=args.include_children,
+            include_io=args.include_io)
 
     if sprocess is not None:
         sprocess.kill()
 
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False):
+            include_children=False, include_io=False):
 
     # We import psutil here so that the module can be imported even if psutil
     # is not present (for example if accessing the version)
@@ -130,18 +134,31 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         f = open(logfile, 'w')
 
     if logfile:
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
+        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}".format(
             'Elapsed time'.center(12),
             'CPU (%)'.center(12),
             'Real (MB)'.center(12),
             'Virtual (MB)'.center(12))
         )
+        if include_io:
+            f.write(" {0:12s} {1:12s} {2:12s} {3:12s}".format(
+                'Read count'.center(12),
+                'Write count'.center(12),
+                'Read bytes'.center(12),
+                'Write bytes'.center(12)))
+        f.write("\n")
 
     log = {}
     log['times'] = []
     log['cpu'] = []
     log['mem_real'] = []
     log['mem_virtual'] = []
+
+    if include_io:
+        log['read_count'] = []
+        log['write_count'] = []
+        log['read_bytes'] = []
+        log['write_bytes'] = []
 
     try:
 
@@ -177,23 +194,45 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             current_mem_real = current_mem.rss / 1024. ** 2
             current_mem_virtual = current_mem.vms / 1024. ** 2
 
+            if include_io:
+                counters = pr.io_counters()
+                read_count = counters.read_count
+                write_count = counters.write_count
+                read_bytes = counters.read_bytes
+                write_bytes = counters.write_bytes
+
             # Get information for children
             if include_children:
                 for child in all_children(pr):
                     try:
                         current_cpu += get_percent(child)
                         current_mem = get_memory(child)
+                        current_mem_real += current_mem.rss / 1024. ** 2
+                        current_mem_virtual += current_mem.vms / 1024. ** 2
+                        if include_io:
+                            counters = child.io_counters()
+                            read_count += counters.read_count
+                            write_count += counters.write_count
+                            read_bytes += counters.read_bytes
+                            write_bytes += counters.write_bytes
                     except Exception:
                         continue
-                    current_mem_real += current_mem.rss / 1024. ** 2
-                    current_mem_virtual += current_mem.vms / 1024. ** 2
+
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
                     current_time - start_time,
                     current_cpu,
                     current_mem_real,
                     current_mem_virtual))
+                if include_io:
+                    f.write(" {0:12d} {1:12d} {2:12d} {3:12d}".format(
+                        read_count,
+                        write_count,
+                        read_bytes,
+                        write_bytes))
+
+                f.write("\n")
                 f.flush()
 
             if interval is not None:
@@ -205,6 +244,11 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
+                if include_io:
+                    log['read_count'].append(read_count)
+                    log['write_count'].append(write_count)
+                    log['read_bytes'].append(read_bytes)
+                    log['write_bytes'].append(write_bytes)
 
     except KeyboardInterrupt:  # pragma: no cover
         pass
