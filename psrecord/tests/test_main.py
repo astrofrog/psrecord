@@ -68,3 +68,6 @@ class TestMonitor(object):
     def test_main_by_id(self):
         sys.argv = ['psrecord', '--duration=3', str(os.getpid())]
         main()
+
+    def test_io(self, tmpdir):
+        monitor(os.getpid(), duration=3, include_io=True)
