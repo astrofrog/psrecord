@@ -29,6 +29,9 @@ plot = [
     "matplotlib",
 ]
 
+[project.scripts]
+psrecord = "psrecord.main:main"
+
 [project.license]
 text = "Simplified BSD License"
 
