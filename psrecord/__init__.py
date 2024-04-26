@@ -25,7 +25,6 @@
 
 from .main import main  # noqa
 from .main import monitor  # noqa
+from ._version import __version__  # noqa
 
-__all__ = ["main", "monitor"]
-
-from ._version import __version__
+__all__ = ["main", "monitor", "__version__"]
