@@ -28,4 +28,4 @@ from .main import monitor  # noqa
 
 __all__ = ["main", "monitor"]
 
-__version__ = "1.3.dev0"
+from ._version import __version__
