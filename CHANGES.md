@@ -1,3 +1,11 @@
+## v1.4 - 2024-04-26
+
+### What's Changed
+
+* FIx CSV output (missing comma) and include number of processes in CSV output by @astrofrog in https://github.com/astrofrog/psrecord/pull/76
+
+**Full Changelog**: https://github.com/astrofrog/psrecord/compare/v1.3...v1.4
+
 ## v1.3 - 2024-04-26
 
 ### What's Changed
