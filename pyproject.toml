@@ -47,3 +47,10 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 namespaces = false
+
+[tool.ruff]
+lint.select = ["F", "E", "W", "I", "UP"]
+line-length = 100
+
+[tool.black]
+line-length = 100

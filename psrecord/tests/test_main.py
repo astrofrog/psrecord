@@ -1,11 +1,12 @@
-import os
-import sys
 import csv
+import os
 import subprocess
+import sys
 
-import pytest
 import psutil
-from ..main import main, monitor, all_children
+import pytest
+
+from ..main import all_children, main, monitor
 
 TEST_CODE = """
 import subprocess
@@ -15,15 +16,15 @@ p.wait()
 
 
 def test_all_children(tmpdir):
+    filename = tmpdir.join("test.py").strpath
 
-    filename = tmpdir.join('test.py').strpath
-
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(TEST_CODE)
 
-    p = subprocess.Popen('{0} {1}'.format(sys.executable, filename).split())
+    p = subprocess.Popen(f"{sys.executable} {filename}".split())
 
     import time
+
     time.sleep(1)
 
     pr = psutil.Process(p.pid)
@@ -32,10 +33,9 @@ def test_all_children(tmpdir):
     p.kill()
 
 
-class TestMonitor(object):
-
+class TestMonitor:
     def setup_method(self, method):
-        self.p = subprocess.Popen('sleep 10', shell=True)
+        self.p = subprocess.Popen("sleep 10", shell=True)
 
     def teardown_method(self, method):
         self.p.kill()
@@ -51,34 +51,34 @@ class TestMonitor(object):
         monitor(os.getpid(), duration=3, include_children=True)
 
     def test_logfile(self, tmpdir):
-        filename = tmpdir.join('test_logfile').strpath
+        filename = tmpdir.join("test_logfile").strpath
         monitor(self.p.pid, logfile=filename, duration=3)
         assert os.path.exists(filename)
-        assert len(open(filename, 'r').readlines()) > 0
+        assert len(open(filename).readlines()) > 0
 
     def test_logfile_csv(self, tmpdir):
-        filename = tmpdir.join('test_logfile.csv').strpath
-        monitor(self.p.pid, logfile=filename, duration=3, log_format='csv')
+        filename = tmpdir.join("test_logfile.csv").strpath
+        monitor(self.p.pid, logfile=filename, duration=3, log_format="csv")
         assert os.path.exists(filename)
-        assert len(open(filename, 'r').readlines()) > 0
+        assert len(open(filename).readlines()) > 0
         with open(filename) as csvfile:
             data = csv.reader(csvfile)
-            assert next(data) == ['elapsed_time', 'cpu', 'mem_real', 'mem_virtual']
+            assert next(data) == ["elapsed_time", "cpu", "mem_real", "mem_virtual"]
 
     def test_plot(self, tmpdir):
         pytest.importorskip("matplotlib")
-        filename = tmpdir.join('test_plot.png').strpath
+        filename = tmpdir.join("test_plot.png").strpath
         monitor(self.p.pid, plot=filename, duration=3)
         assert os.path.exists(filename)
 
     def test_main(self):
-        sys.argv = ['psrecord', '--duration=3', "'sleep 10'"]
+        sys.argv = ["psrecord", "--duration=3", "'sleep 10'"]
         main()
 
     def test_main_by_id(self):
-        sys.argv = ['psrecord', '--duration=3', str(os.getpid())]
+        sys.argv = ["psrecord", "--duration=3", str(os.getpid())]
         main()
 
-    @pytest.mark.skipif(sys.platform == 'darwin', reason="Functionality not supported on MacOS")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="Functionality not supported on MacOS")
     def test_io(self, tmpdir):
         monitor(os.getpid(), duration=3, include_io=True)

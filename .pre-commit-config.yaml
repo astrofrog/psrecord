@@ -1,0 +1,11 @@
+ci:
+  autofix_prs: false
+  autoupdate_schedule: 'monthly'
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.3.4"
+    hooks:
+      - id: ruff
+        args: ["--fix", "--show-fixes"]
+      - id: ruff-format

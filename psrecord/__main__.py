@@ -23,7 +23,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from .main import main  # noqa
+from .main import main
 
-__version__ = '1.3.dev0'
+__version__ = "1.3.dev0"
 main()
