@@ -7,7 +7,9 @@ version_file = "psrecord/_version.py"
 
 [project]
 name = "psrecord"
-version = "1.3.dev0"
+dynamic = [
+    "version"
+]
 authors = [
     { name = "Thomas Robitaille", email = "thomas.robitaille@gmail.com" },
 ]
