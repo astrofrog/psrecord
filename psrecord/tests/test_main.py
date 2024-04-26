@@ -63,7 +63,7 @@ class TestMonitor:
         assert len(open(filename).readlines()) > 0
         with open(filename) as csvfile:
             data = csv.reader(csvfile)
-            assert next(data) == ["elapsed_time", "cpu", "mem_real", "mem_virtual"]
+            assert next(data) == ["elapsed_time", "nproc", "cpu", "mem_real", "mem_virtual"]
 
     def test_plot(self, tmpdir):
         pytest.importorskip("matplotlib")
