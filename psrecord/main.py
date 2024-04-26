@@ -176,7 +176,7 @@ def monitor(
                     )
                 )
         elif log_format == "csv":
-            f.write("elapsed_time,cpu,mem_real,mem_virtual")
+            f.write("elapsed_time,nproc,cpu,mem_real,mem_virtual")
             if include_io:
                 f.write(",read_count,write_count,read_bytes,write_bytes")
         else:
@@ -236,6 +236,8 @@ def monitor(
                 read_bytes = counters.read_bytes
                 write_bytes = counters.write_bytes
 
+            n_proc = 1
+
             # Get information for children
             if include_children:
                 for child in all_children(pr):
@@ -250,6 +252,7 @@ def monitor(
                             write_count += counters.write_count
                             read_bytes += counters.read_bytes
                             write_bytes += counters.write_bytes
+                        n_proc += 1
                     except Exception:
                         continue
 
@@ -266,10 +269,10 @@ def monitor(
                         )
                 elif log_format == "csv":
                     f.write(
-                        f"{elapsed_time},{current_cpu},{current_mem_real},{current_mem_virtual}"
+                        f"{elapsed_time},{n_proc},{current_cpu},{current_mem_real},{current_mem_virtual}"
                     )
                     if include_io:
-                        f.write(f"{read_count},{write_count},{read_bytes},{write_bytes}")
+                        f.write(f",{read_count},{write_count},{read_bytes},{write_bytes}")
                 f.write("\n")
                 f.flush()
 
