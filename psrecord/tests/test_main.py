@@ -1,5 +1,6 @@
 import os
 import sys
+import csv
 import subprocess
 
 import pytest
@@ -54,6 +55,15 @@ class TestMonitor(object):
         monitor(self.p.pid, logfile=filename, duration=3)
         assert os.path.exists(filename)
         assert len(open(filename, 'r').readlines()) > 0
+
+    def test_logfile_csv(self, tmpdir):
+        filename = tmpdir.join('test_logfile.csv').strpath
+        monitor(self.p.pid, logfile=filename, duration=3, log_format='csv')
+        assert os.path.exists(filename)
+        assert len(open(filename, 'r').readlines()) > 0
+        with open(filename) as csvfile:
+            data = csv.reader(csvfile)
+            assert next(data) == ['elapsed_time', 'cpu', 'mem_real', 'mem_virtual']
 
     def test_plot(self, tmpdir):
         pytest.importorskip("matplotlib")

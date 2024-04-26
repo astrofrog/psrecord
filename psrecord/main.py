@@ -70,6 +70,9 @@ def main():
                              '--log nor --plot are specified, print to print '
                              'to standard output.')
 
+    parser.add_argument('--log-format', type=str, default='plain',
+                        help='the format of the log file, can be one of "plain" or "csv"')
+
     parser.add_argument('--plot', type=str,
                         help='output the statistics to a plot.')
 
@@ -108,14 +111,14 @@ def main():
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
             interval=args.interval, include_children=args.include_children,
-            include_io=args.include_io)
+            include_io=args.include_io, log_format=args.log_format)
 
     if sprocess is not None:
         sprocess.kill()
 
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False, include_io=False):
+            include_children=False, include_io=False, log_format="plain"):
 
     # We import psutil here so that the module can be imported even if psutil
     # is not present (for example if accessing the version)
@@ -134,18 +137,25 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         f = open(logfile, 'w')
 
     if logfile:
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}".format(
-            'Elapsed time'.center(12),
-            'CPU (%)'.center(12),
-            'Real (MB)'.center(12),
-            'Virtual (MB)'.center(12))
-        )
-        if include_io:
-            f.write(" {0:12s} {1:12s} {2:12s} {3:12s}".format(
-                'Read count'.center(12),
-                'Write count'.center(12),
-                'Read bytes'.center(12),
-                'Write bytes'.center(12)))
+        if log_format == 'plain':
+            f.write("# {0:12s} {1:12s} {2:12s} {3:12s}".format(
+                'Elapsed time'.center(12),
+                'CPU (%)'.center(12),
+                'Real (MB)'.center(12),
+                'Virtual (MB)'.center(12))
+            )
+            if include_io:
+                f.write(" {0:12s} {1:12s} {2:12s} {3:12s}".format(
+                    'Read count'.center(12),
+                    'Write count'.center(12),
+                    'Read bytes'.center(12),
+                    'Write bytes'.center(12)))
+        elif log_format == 'csv':
+            f.write("elapsed_time,cpu,mem_real,mem_virtual")
+            if include_io:
+                f.write(",read_count,write_count,read_bytes,write_bytes")
+        else:
+            raise ValueError(f"Unknown log format: '{log_format}', should be either 'plain' or 'csv'")
         f.write("\n")
 
     log = {}
@@ -167,6 +177,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # Find current time
             current_time = time.time()
+            elapsed_time = current_time - start_time
 
             try:
                 pr_status = pr.status()
@@ -178,11 +189,11 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             # Check if process status indicates we should exit
             if pr_status in [psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD]:
                 print("Process finished ({0:.2f} seconds)"
-                      .format(current_time - start_time))
+                      .format(elapsed_time))
                 break
 
             # Check if we have reached the maximum time
-            if duration is not None and current_time - start_time > duration:
+            if duration is not None and elapsed_time > duration:
                 break
 
             # Get current CPU and memory
@@ -220,18 +231,22 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
 
             if logfile:
-                f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
-                    current_time - start_time,
-                    current_cpu,
-                    current_mem_real,
-                    current_mem_virtual))
-                if include_io:
-                    f.write(" {0:12d} {1:12d} {2:12d} {3:12d}".format(
-                        read_count,
-                        write_count,
-                        read_bytes,
-                        write_bytes))
-
+                if log_format == 'plain':
+                    f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}".format(
+                        elapsed_time,
+                        current_cpu,
+                        current_mem_real,
+                        current_mem_virtual))
+                    if include_io:
+                        f.write(" {0:12d} {1:12d} {2:12d} {3:12d}".format(
+                            read_count,
+                            write_count,
+                            read_bytes,
+                            write_bytes))
+                elif log_format == 'csv':
+                    f.write(f"{elapsed_time},{current_cpu},{current_mem_real},{current_mem_virtual}")
+                    if include_io:
+                        f.write(f"{read_count},{write_count},{read_bytes},{write_bytes}")
                 f.write("\n")
                 f.flush()
 
@@ -240,7 +255,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # If plotting, record the values
             if plot:
-                log['times'].append(current_time - start_time)
+                log['times'].append(elapsed_time)
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
