@@ -1,4 +1,4 @@
-|Build Status| |Coverage Status|
+|Coverage Status|
 
 About
 =====
@@ -113,7 +113,5 @@ Reporting issues
 Please report any issues in the `issue
 tracker <https://github.com/astrofrog/psrecord/issues>`__.
 
-.. |Build Status| image:: https://travis-ci.org/astrofrog/psrecord.svg?branch=master
-   :target: https://travis-ci.org/astrofrog/psrecord
 .. |Coverage Status| image:: https://codecov.io/gh/astrofrog/psrecord/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/astrofrog/psrecord
