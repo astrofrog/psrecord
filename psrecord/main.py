@@ -94,7 +94,7 @@ def main():
 
     parser.add_argument(
         "--include-children",
-        help="include sub-processes in statistics (results " "in a slower maximum sampling rate).",
+        help="include sub-processes in statistics (results in a slower maximum sampling rate).",
         action="store_true",
     )
 
