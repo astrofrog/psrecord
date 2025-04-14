@@ -61,7 +61,7 @@ To make a plot of the activity:
 
 This will produce a plot such as:
 
-.. image:: https://github.com/astrofrog/psrecord/raw/master/screenshot.png
+.. image:: https://github.com/astrofrog/psrecord/blob/main/screenshot.png
 
 You can combine these options to write the activity to a file and make a
 plot at the same time:
