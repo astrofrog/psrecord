@@ -17,14 +17,20 @@ jobs:
         - linux: py310-test-psutil56
         - linux: py311-test-psutil57
         - linux: py312-test-psutil58-alldeps
+        - linux: py313-test-psutil59
+        - linux: py314-test-psutil59
 
-        - macos-14: py310-test-psutil56
-        - macos-14: py311-test-psutil57
-        - macos-14: py312-test-psutil58-alldeps
+        - macos: py310-test-psutil56
+        - macos: py311-test-psutil57
+        - macos: py312-test-psutil58-alldeps
+        - macos: py313-test-psutil59
+        - macos: py314-test-psutil59
 
         - windows: py310-test-psutil56
         - windows: py311-test-psutil57
         - windows: py312-test-psutil58-alldeps
+        - windows: py313-test-psutil59
+        - windows: py314-test-psutil59
 
   publish:
     needs: tests
