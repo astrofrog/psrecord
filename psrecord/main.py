@@ -30,6 +30,10 @@ import time
 
 children = []
 
+# Characters that mean a command has to be run through a shell rather than
+# being split into arguments and executed directly
+SHELL_CHARS = "|&;<>()$`\\\"'*?[]{}~#\n"
+
 
 def get_percent(process):
     return process.cpu_percent()
@@ -102,17 +106,32 @@ def main():
 
     args = parser.parse_args()
 
+    include_children = args.include_children
+
     # Attach to process
     try:
         pid = int(args.process_id_or_command)
         print(f"Attaching to process {pid}")
         sprocess = None
     except Exception:
+        import shlex
         import subprocess
 
         command = args.process_id_or_command
         print(f"Starting up command '{command}' and attaching to process")
-        sprocess = subprocess.Popen(command, shell=True)
+        if sys.platform == "win32":
+            sprocess = subprocess.Popen(command)
+        elif any(char in command for char in SHELL_CHARS):
+            # Running the command through a shell means the monitored process
+            # is the shell itself, since modern shells no longer exec single
+            # commands in-place, so child processes have to be included for
+            # the statistics to be meaningful.
+            sprocess = subprocess.Popen(command, shell=True)
+            if not include_children:
+                print("Command requires a shell, including child processes in statistics")
+                include_children = True
+        else:
+            sprocess = subprocess.Popen(shlex.split(command))
         pid = sprocess.pid
 
     monitor(
@@ -121,7 +140,7 @@ def main():
         plot=args.plot,
         duration=args.duration,
         interval=args.interval,
-        include_children=args.include_children,
+        include_children=include_children,
         include_io=args.include_io,
         log_format=args.log_format,
     )

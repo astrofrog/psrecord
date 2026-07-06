@@ -72,7 +72,11 @@ class TestMonitor:
         assert os.path.exists(filename)
 
     def test_main(self):
-        sys.argv = ["psrecord", "--duration=3", "'sleep 10'"]
+        sys.argv = [
+            "psrecord",
+            "--duration=3",
+            f'"{sys.executable}" -c "import time; time.sleep(10)"',
+        ]
         main()
 
     def test_main_by_id(self):
@@ -82,3 +86,60 @@ class TestMonitor:
     @pytest.mark.skipif(sys.platform == "darwin", reason="Functionality not supported on MacOS")
     def test_io(self, tmpdir):
         monitor(os.getpid(), duration=3, include_io=True)
+
+
+MEMORY_CODE = """
+x = [0] * 20_000_000
+import time
+time.sleep(10)
+"""
+
+
+def max_logged_memory(filename):
+    with open(filename) as f:
+        rows = [line.split() for line in f.readlines()[1:]]
+    return max(float(row[2]) for row in rows)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Test relies on POSIX commands")
+class TestLaunchedCommand:
+    # When psrecord launches the command itself, the logged statistics
+    # should be those of the command, not of an intermediate shell
+
+    def setup_method(self, method):
+        self.original_argv = sys.argv
+
+    def teardown_method(self, method):
+        sys.argv = self.original_argv
+
+    def test_simple_command(self, tmpdir):
+        script = tmpdir.join("memory.py").strpath
+        with open(script, "w") as f:
+            f.write(MEMORY_CODE)
+        logfile = tmpdir.join("log.txt").strpath
+        sys.argv = [
+            "psrecord",
+            f"{sys.executable} {script}",
+            "--log",
+            logfile,
+            "--duration=3",
+            "--interval=0.2",
+        ]
+        main()
+        assert max_logged_memory(logfile) > 100
+
+    def test_command_with_shell_syntax(self, tmpdir):
+        script = tmpdir.join("memory.py").strpath
+        with open(script, "w") as f:
+            f.write(MEMORY_CODE)
+        logfile = tmpdir.join("log.txt").strpath
+        sys.argv = [
+            "psrecord",
+            f"sleep 0 && {sys.executable} {script}",
+            "--log",
+            logfile,
+            "--duration=3",
+            "--interval=0.2",
+        ]
+        main()
+        assert max_logged_memory(logfile) > 100
