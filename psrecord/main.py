@@ -342,4 +342,4 @@ def monitor(
 
             ax.grid()
 
-            fig.savefig(plot, bbox_inches='tight')
+            fig.savefig(plot, bbox_inches="tight")
