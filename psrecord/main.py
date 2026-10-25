@@ -293,7 +293,6 @@ def monitor(
                     if include_io:
                         f.write(f",{read_count},{write_count},{read_bytes},{write_bytes}")
                 f.write("\n")
-                f.flush()
 
             if interval is not None:
                 time.sleep(interval)
@@ -315,6 +314,7 @@ def monitor(
 
     # close the logfile, if it's not stdout
     if logfile and logfile != "<stdout>":
+        f.flush()
         f.close()
 
     if plot:
