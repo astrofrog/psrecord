@@ -28,8 +28,6 @@ import argparse
 import sys
 import time
 
-children = []
-
 # Characters that mean a command has to be run through a shell rather than
 # being split into arguments and executed directly
 SHELL_CHARS = "|&;<>()$`\\\"'*?[]{}~#\n"
@@ -43,19 +41,17 @@ def get_memory(process):
     return process.memory_info()
 
 
-def all_children(pr):
-    global children
-
+def all_children(pr, tracked_children):
     try:
         children_of_pr = pr.children(recursive=True)
     except Exception:  # pragma: no cover
-        return children
+        return tracked_children
 
     for child in children_of_pr:
-        if child not in children:
-            children.append(child)
+        if child not in tracked_children:
+            tracked_children.append(child)
 
-    return children
+    return tracked_children
 
 
 def main():
@@ -204,6 +200,10 @@ def monitor(
             )
         f.write("\n")
 
+    # Keep the historical child set scoped to this monitor invocation. A
+    # module-level list leaks children between calls (and concurrent monitors).
+    tracked_children = []
+
     log = {}
     log["times"] = []
     log["cpu"] = []
@@ -259,7 +259,7 @@ def monitor(
 
             # Get information for children
             if include_children:
-                for child in all_children(pr):
+                for child in all_children(pr, tracked_children):
                     try:
                         current_cpu += get_percent(child)
                         current_mem = get_memory(child)

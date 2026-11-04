@@ -28,9 +28,46 @@ def test_all_children(tmpdir):
     time.sleep(1)
 
     pr = psutil.Process(p.pid)
-    children = all_children(pr)
+    children = all_children(pr, [])
     assert len(children) > 0
     p.kill()
+
+
+def test_all_children_tracking_is_per_monitor():
+    parent_code = (
+        "import subprocess,sys,time; "
+        "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(10)']); "
+        "print(p.pid,flush=True); time.sleep(10)"
+    )
+    parent = subprocess.Popen(
+        [sys.executable, "-c", parent_code], stdout=subprocess.PIPE, text=True
+    )
+    child_pid = None
+    observer = None
+    try:
+        child_pid = int(parent.stdout.readline().strip())
+        first_tracker = []
+        all_children(psutil.Process(parent.pid), first_tracker)
+        assert any(child.pid == child_pid for child in first_tracker)
+
+        observer = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(10)"])
+        second_tracker = []
+        second_children = all_children(psutil.Process(observer.pid), second_tracker)
+        assert all(child.pid != child_pid for child in second_children)
+    finally:
+        if observer is not None and observer.poll() is None:
+            observer.kill()
+            observer.wait(timeout=5)
+        if child_pid is not None:
+            try:
+                psutil.Process(child_pid).kill()
+            except psutil.NoSuchProcess:
+                pass
+        if parent.poll() is None:
+            parent.kill()
+            parent.wait(timeout=5)
+        if parent.stdout is not None:
+            parent.stdout.close()
 
 
 class TestMonitor:
