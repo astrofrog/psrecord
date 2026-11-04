@@ -243,18 +243,16 @@ def monitor(
             try:
                 current_cpu = get_percent(pr)
                 current_mem = get_memory(pr)
+                current_mem_real = current_mem.rss / 1024.0**2
+                current_mem_virtual = current_mem.vms / 1024.0**2
+                if include_io:
+                    counters = pr.io_counters()
+                    read_count = counters.read_count
+                    write_count = counters.write_count
+                    read_bytes = counters.read_bytes
+                    write_bytes = counters.write_bytes
             except Exception:
                 break
-            current_mem_real = current_mem.rss / 1024.0**2
-            current_mem_virtual = current_mem.vms / 1024.0**2
-
-            if include_io:
-                counters = pr.io_counters()
-                read_count = counters.read_count
-                write_count = counters.write_count
-                read_bytes = counters.read_bytes
-                write_bytes = counters.write_bytes
-
             n_proc = 1
 
             # Get information for children
